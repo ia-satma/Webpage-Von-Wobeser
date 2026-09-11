@@ -322,7 +322,7 @@ export function registerAdminNewsRoutes(app: Express): void {
   );
   const sourceUrlSchema = z.preprocess(
     normalizeOptionalOriginalSourceUrl,
-    z.string().trim().max(2_000).url().refine(isVerifiedNewsSourceUrl, "La fuente debe usar una URL HTTPS pública").nullable().optional(),
+    z.string().trim().max(2_000).refine(isVerifiedNewsSourceUrl, "La fuente debe usar una URL HTTPS pública o un PDF migrado").nullable().optional(),
   );
   // La fecha viaja como YYYY-MM-DD desde el panel y se fija al mediodía UTC:
   // así no retrocede de mes en zonas horarias occidentales. Las recuperaciones

@@ -1,0 +1,2498 @@
+{
+  "version": 1,
+  "generatedAt": "2026-09-11T00:24:59.491Z",
+  "purpose": "Respaldo privado del sitio retirado y migración verificable de recursos públicos.",
+  "publicDocuments": [
+    {
+      "originalUrl": "https://www.vonwobeser.com/images/PDF/2022/Preparate_Para_el_Proximo_Cisne1.pdf",
+      "kind": "pdf",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "0dddeaf9-ed0e-43f9-9419-2a437feefdbe",
+          "slug": "preparate-para-el-proximo-cisne-2",
+          "field": "source_url"
+        },
+        {
+          "table": "news",
+          "id": "69245f61-db72-404c-81e1-ff610b984a0e",
+          "slug": "preparate-para-el-proximo-cisne",
+          "field": "source_url"
+        }
+      ],
+      "localPath": "legacy-archive/publications/preparate-para-el-proximo-cisne.pdf",
+      "publicPath": "/uploads/legacy-publications/preparate-para-el-proximo-cisne.pdf",
+      "objectName": "von-wobeser/public/uploads/legacy-publications/preparate-para-el-proximo-cisne.pdf",
+      "bytes": 1572085,
+      "sha256": "8abf9315e753a44049ed48733f6c60346b13f642d10963edee21770c12ecec30"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/images/PDF_news/2015/IBAMexicoChapterInternationalArbitrationGuide2013.pdf",
+      "kind": "pdf",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "ece800dd-9adc-4a8c-b673-25ea3c970fc0",
+          "slug": "claus-von-wobeser-international-bar-association-guide-iba-arbitration-guide-mexi",
+          "field": "source_url"
+        },
+        {
+          "table": "news",
+          "id": "d2ae52f8-2ca6-4958-add2-1b094325a649",
+          "slug": "claus-von-wobeser-international-bar-association-iba-guia-de-arbitraje-en-mexico",
+          "field": "source_url"
+        }
+      ],
+      "localPath": "legacy-archive/publications/iba-mexico-arbitration-guide-2013.pdf",
+      "publicPath": "/uploads/legacy-publications/iba-mexico-arbitration-guide-2013.pdf",
+      "objectName": "von-wobeser/public/uploads/legacy-publications/iba-mexico-arbitration-guide-2013.pdf",
+      "bytes": 141557,
+      "sha256": "c8633ec09fb9b284d9143fc6316bccd0b8858d36b03e45945704eda18604ad9e"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/images/PDF_news/2015/MexicoOutsourcingNov2013.pdf",
+      "kind": "pdf",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "b82ceae2-cf3a-4a41-b346-88d4af3a6f18",
+          "slug": "rodolfo-trampe-jorge-diaz-jose-palomar-getting-the-deal-through-outsourcing-mexi",
+          "field": "source_url"
+        },
+        {
+          "table": "news",
+          "id": "7fe231ad-a9cd-44cc-95c1-f814d2bcb0eb",
+          "slug": "rodolfo-trampe-jorge-diaz-jose-palomar-getting-the-deal-through-outsourcing-mexi-2",
+          "field": "source_url"
+        }
+      ],
+      "localPath": "legacy-archive/publications/mexico-outsourcing-2013.pdf",
+      "publicPath": "/uploads/legacy-publications/mexico-outsourcing-2013.pdf",
+      "objectName": "von-wobeser/public/uploads/legacy-publications/mexico-outsourcing-2013.pdf",
+      "bytes": 208781,
+      "sha256": "f40b5603f2e381a1dfdad693bc8f431358bb971e00de836434d1dad663b96956"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/images/PDF_news/2021/21_10_12_MINERIA_ESG_ING.pdf",
+      "kind": "pdf",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "33353440-ab57-4435-b33d-a3b479cd2f5e",
+          "slug": "esg-en-la-industria-minera-mexicana-segunda-parte",
+          "field": "source_url"
+        },
+        {
+          "table": "news",
+          "id": "05b8796c-043b-4d18-9483-f0515c4b5514",
+          "slug": "esg-in-the-mexican-mining-industry-first-section",
+          "field": "source_url"
+        },
+        {
+          "table": "news",
+          "id": "74b48c08-f683-4f5d-afba-f5b60da7b3a5",
+          "slug": "esg-in-the-mexican-mining-industry-part-two",
+          "field": "source_url"
+        },
+        {
+          "table": "news",
+          "id": "70a6241f-048c-45e1-b058-1a7bfb1b902f",
+          "slug": "esg-en-la-industria-minera-mexicana-primera-parte",
+          "field": "source_url"
+        }
+      ],
+      "localPath": "legacy-archive/publications/mining-esg-parts-one-and-two.pdf",
+      "publicPath": "/uploads/legacy-publications/mining-esg-parts-one-and-two.pdf",
+      "objectName": "von-wobeser/public/uploads/legacy-publications/mining-esg-parts-one-and-two.pdf",
+      "bytes": 453394,
+      "sha256": "47858a41dd2795be69bcefce26be45700ded24a76b9724d209180ad877f24b2f"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/images/PDF_news/2021/21_11_12_ARBITRAJE_ESG_ING.pdf",
+      "kind": "pdf",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "391be58b-9ce9-4205-8c73-44d3a7893e18",
+          "slug": "el-rol-del-arbitraje-en-disputas-esg",
+          "field": "source_url"
+        },
+        {
+          "table": "news",
+          "id": "dac3cdd1-5528-43eb-91df-739dd83c6039",
+          "slug": "the-role-of-arbitration-in-esg-disputes",
+          "field": "source_url"
+        }
+      ],
+      "localPath": "legacy-archive/publications/arbitration-esg.pdf",
+      "publicPath": "/uploads/legacy-publications/arbitration-esg.pdf",
+      "objectName": "von-wobeser/public/uploads/legacy-publications/arbitration-esg.pdf",
+      "bytes": 295516,
+      "sha256": "87a9c9e0feb49af72283fcd27b64e1e7bca8ef9e170d2f8db6bffb1175c68139"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/images/PDF_news/2022/22_08_11_ESG_En-la-Industria-Minera-Mexicana-3_ENG.pdf",
+      "kind": "pdf",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "968c7bd4-9653-4e14-92b9-f4f848aeb696",
+          "slug": "esg-in-the-mexican-mining-industry-part-three",
+          "field": "source_url"
+        },
+        {
+          "table": "news",
+          "id": "b3da086e-1dd7-43c3-a148-a94bd75d44b9",
+          "slug": "esg-en-la-industria-minera-mexicana-tercera-parte",
+          "field": "source_url"
+        }
+      ],
+      "localPath": "legacy-archive/publications/mining-esg-part-three.pdf",
+      "publicPath": "/uploads/legacy-publications/mining-esg-part-three.pdf",
+      "objectName": "von-wobeser/public/uploads/legacy-publications/mining-esg-part-three.pdf",
+      "bytes": 237977,
+      "sha256": "cdd784d6d6733fb24abd0157a3637fe42daec32a4f4f61d5ee225ee893c03c52"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/images/PDF_news/2023/ESG4/23_05_22_MINERIA_ESG_ENG-Pt4-OK.pdf",
+      "kind": "pdf",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "56adb058-d443-4073-a4a4-879b3bc8ec3f",
+          "slug": "esg-in-the-mexican-mining-industry-part-four",
+          "field": "source_url"
+        },
+        {
+          "table": "news",
+          "id": "948d9ed0-b5c0-4aa3-b2f9-46f2c3084d72",
+          "slug": "esg-en-la-industria-minera-mexicana-cuarta-parte",
+          "field": "source_url"
+        }
+      ],
+      "localPath": "legacy-archive/publications/mining-esg-part-four.pdf",
+      "publicPath": "/uploads/legacy-publications/mining-esg-part-four.pdf",
+      "objectName": "von-wobeser/public/uploads/legacy-publications/mining-esg-part-four.pdf",
+      "bytes": 250105,
+      "sha256": "7e789a1278d38377ad86c9172d2b84bd2082dd5718d423bd288493abab17c1c8"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/images/PDF_news/2023/vision_combate.pdf",
+      "kind": "pdf",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "a4871de1-85db-46e6-9e23-06f12d478081",
+          "slug": "una-vision-interdisciplinaria-en-el-combate-a-la-corrupcion-2",
+          "field": "source_url"
+        },
+        {
+          "table": "news",
+          "id": "058a4313-3a7c-415d-91f0-a79623555e3c",
+          "slug": "una-vision-interdisciplinaria-en-el-combate-a-la-corrupcion",
+          "field": "source_url"
+        }
+      ],
+      "localPath": "legacy-archive/publications/vision-combate-corrupcion.pdf",
+      "publicPath": "/uploads/legacy-publications/vision-combate-corrupcion.pdf",
+      "objectName": "von-wobeser/public/uploads/legacy-publications/vision-combate-corrupcion.pdf",
+      "bytes": 2556919,
+      "sha256": "2615cbf614db67bd33e1e0fbf1bd829b27c050f5d79f969e2484a0f70896863c"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/images/PDF_news/PDF_articles/2013/45-MexicoInvestmentTreaty.pdf",
+      "kind": "pdf",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "e36d5f69-b1de-436a-968c-eebc78399b60",
+          "slug": "claus-von-wobeser-adrian-magallanes-getting-the-deal-through-investment-treaty-m",
+          "field": "source_url"
+        },
+        {
+          "table": "news",
+          "id": "657c135f-2dcf-4aba-b0b8-63a2154ff521",
+          "slug": "claus-von-wobeser-adrian-magallanes-getting-the-deal-through-investment-treaty-m-2",
+          "field": "source_url"
+        }
+      ],
+      "localPath": "legacy-archive/publications/mexico-investment-treaty.pdf",
+      "publicPath": "/uploads/legacy-publications/mexico-investment-treaty.pdf",
+      "objectName": "von-wobeser/public/uploads/legacy-publications/mexico-investment-treaty.pdf",
+      "bytes": 182990,
+      "sha256": "fcb97c483cbf50b097f0f6d5d93d87009333bdecda1ea06cc71a441fe2f7685e"
+    }
+  ],
+  "privateHtml": [
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=101",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "5f245314-5f46-4936-afb4-6dec0292c015",
+          "slug": "andres-nieto-global-pound-conference-shaping-the-future-of-dispute-resolution-and-improving-acce-101"
+        }
+      ],
+      "localPath": "legacy-archive/html/8678c425a35d76b433252822e98273707475b2b0c51c4f5ffbdb39da1e68f7bb.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/8678c425a35d76b433252822e98273707475b2b0c51c4f5ffbdb39da1e68f7bb.html",
+      "bytes": 24141,
+      "sha256": "f3b89ecb4e9784f559370eb8ab73d57ca995721a77eb0ceb753c0ca55f8f7a68"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1010",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "ac20a02f-ce79-44aa-942b-47fc713a04b5",
+          "slug": "evento-planning-past-unconscious-bias-the-arbitralwomen-diversity-toolkit-1010"
+        }
+      ],
+      "localPath": "legacy-archive/html/da9af5b555a9adb71067f9e30c2040323715646168f9411ba0e9d8b74decd4ba.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/da9af5b555a9adb71067f9e30c2040323715646168f9411ba0e9d8b74decd4ba.html",
+      "bytes": 24217,
+      "sha256": "5e9fe041704a0b329391e3c9c0f56d62368165d6bafc9e6dc222b890f7c8316d"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=103",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "755c03ab-2fcc-42e0-9d7e-376617373daa",
+          "slug": "adrian-magallanes-global-pound-conference-shaping-the-future-of-dispute-resolution-and-improving-103"
+        }
+      ],
+      "localPath": "legacy-archive/html/135842afd41ed00104a8e9762c1ece18fb7f01cfca2b088ae4b9a40792c47343.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/135842afd41ed00104a8e9762c1ece18fb7f01cfca2b088ae4b9a40792c47343.html",
+      "bytes": 24291,
+      "sha256": "2b928eab3c086e59c22abd45ac131f630291dd038c8111b792cc1adc6e9bab75"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=105",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "b23f7074-9956-403d-95b6-f6bc36a2c4ae",
+          "slug": "von-wobeser-y-sierra-participates-in-latinamerica-corruption-survey-2016-105"
+        }
+      ],
+      "localPath": "legacy-archive/html/109eb22d35dd69ca8725163c6a4c5227fd0ae3b056f170783bafa0d64a5929b4.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/109eb22d35dd69ca8725163c6a4c5227fd0ae3b056f170783bafa0d64a5929b4.html",
+      "bytes": 25700,
+      "sha256": "9cb67e74c7f6351941f5eae552c5367db1ac083cd67b8c5e2d8cfd6afde0856f"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1059",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "d38dce0b-bcd4-4f12-ad76-923ad61c74b4",
+          "slug": "global-competition-review-fernando-carreno-compania-de-informacion-crediticia-multada-por-negars-1059"
+        }
+      ],
+      "localPath": "legacy-archive/html/70bf65c323f2121f4365b468fb7764e7c2a1774b01f969ea1c7e454cdc915445.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/70bf65c323f2121f4365b468fb7764e7c2a1774b01f969ea1c7e454cdc915445.html",
+      "bytes": 24573,
+      "sha256": "a6e6a69c43041be66971ccdb3d85b5cadc85e0a05792bca7f1dd13a32659455c"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1062",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "3aea0b85-7d94-4b97-bb9f-4b011e13a460",
+          "slug": "circulares-emitidas-por-el-banco-de-mexico-en-materia-de-mitigacion-de-riesgos-operaciones-con-a-1062"
+        }
+      ],
+      "localPath": "legacy-archive/html/f58df1a020b6cc6382c04b340ac1fdd8d2cdcb6b05b6606fd57b362913acb008.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/f58df1a020b6cc6382c04b340ac1fdd8d2cdcb6b05b6606fd57b362913acb008.html",
+      "bytes": 24491,
+      "sha256": "9d7f01d37468b36edd742c459f794625d686697b64e7460b101fc903d0df3587"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=107",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "9c05be7a-e2d4-424a-8585-1ad3b5751884",
+          "slug": "the-national-hydrocarbons-commission-issued-the-call-and-the-rules-for-the-first-bidding-of-roun-107"
+        }
+      ],
+      "localPath": "legacy-archive/html/4f6b9b1966e379b6936e21019fb41773b93d939a9b3c2d0f1a6b6b58d1b5e867.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/4f6b9b1966e379b6936e21019fb41773b93d939a9b3c2d0f1a6b6b58d1b5e867.html",
+      "bytes": 25349,
+      "sha256": "68309b053a25ce1f1bd73e8bf94c629a93db3e409f317cc081d45877599c0618"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=109",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "46922103-a63f-481f-966b-63fa0841b308",
+          "slug": "communication-regarding-mexican-data-privacy-protection-109"
+        }
+      ],
+      "localPath": "legacy-archive/html/132168609308f7e3648660f78675877d16ad6d3614b25c68a7770792442ef4f1.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/132168609308f7e3648660f78675877d16ad6d3614b25c68a7770792442ef4f1.html",
+      "bytes": 25799,
+      "sha256": "12d24529d1909c35ef902944d4af6ffd5bcc95acb5ba460515f966ee9deb1114"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1095",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "9579dee0-bfb9-47bf-8389-ba2db760f1f5",
+          "slug": "latin-lawyer-entendiendo-al-peje-lo-que-los-abogados-esperan-de-la-presidencia-de-amlo-1095"
+        }
+      ],
+      "localPath": "legacy-archive/html/49e6c2490e242aa37db672d3a59537cb719cd63d6290c4edcad33ab8a8b3cc89.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/49e6c2490e242aa37db672d3a59537cb719cd63d6290c4edcad33ab8a8b3cc89.html",
+      "bytes": 24416,
+      "sha256": "a104c86ac6ade1eec5f249a36802cae81112134b13cafbebef9e63df0ec00262"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1096",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "537044be-5406-4e4c-b407-848da00b196c",
+          "slug": "reform-in-relation-to-the-granting-of-leave-for-parents-whose-children-have-been-diagnosed-with-1096"
+        }
+      ],
+      "localPath": "legacy-archive/html/1094f194394b5790f739959bc8a25b7db0d65f96946ef26eb9e5a019c8dce61b.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/1094f194394b5790f739959bc8a25b7db0d65f96946ef26eb9e5a019c8dce61b.html",
+      "bytes": 24193,
+      "sha256": "8cd13918206fabbe66e06810800deadbede403d0117d0a59b6a418a03495fa69"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1098",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "295135c6-75ad-4245-9da7-053561a37a23",
+          "slug": "reform-of-the-federal-labor-and-social-security-laws-in-relation-to-domestic-workers-1098"
+        }
+      ],
+      "localPath": "legacy-archive/html/33556f65f1c84ba46a699a7ffc16e954116bb326ad83dd7c383df94f0362a551.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/33556f65f1c84ba46a699a7ffc16e954116bb326ad83dd7c383df94f0362a551.html",
+      "bytes": 24391,
+      "sha256": "342864a3853f77f83e16ac5079162b6081d6f9008926fc9b8556b2c5bc863adb"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1100",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "f42ecbcb-da05-446a-a1f8-faa9a9c416fe",
+          "slug": "general-transparency-and-healthy-practices-provisions-issued-by-the-condusef-applicable-to-the-f-1100"
+        }
+      ],
+      "localPath": "legacy-archive/html/a719a293c2c7973f49fcc82ff67ae5149e81c2e355cdd1117beaf977fab8e104.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/a719a293c2c7973f49fcc82ff67ae5149e81c2e355cdd1117beaf977fab8e104.html",
+      "bytes": 24378,
+      "sha256": "bde22f1b309388e49defbd2c45c689c244b33d180a0f2c07a3d8588394386113"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=111",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "d92235b2-d3c7-4a2e-810f-ac593457c13f",
+          "slug": "mexico-s-new-anti-corruption-paradigm-111"
+        }
+      ],
+      "localPath": "legacy-archive/html/52f0010eb62b0d18fceed9acab5169abcc4d4a7a80ec7c25fc3795329ee2400d.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/52f0010eb62b0d18fceed9acab5169abcc4d4a7a80ec7c25fc3795329ee2400d.html",
+      "bytes": 25267,
+      "sha256": "ba86f0e0bd62ac1f57460653a6c6c32d4e0d057412050022bd7d54a59d563d23"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=113",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "4e370bbb-1451-4d5f-a51e-179de67b4cd5",
+          "slug": "mexican-congress-issues-secondary-anticorruption-regulations-113"
+        }
+      ],
+      "localPath": "legacy-archive/html/2fde90c9039d3c3dc57a359b4896d903a46a02fb4e080b2d9d8d11a2844036a2.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/2fde90c9039d3c3dc57a359b4896d903a46a02fb4e080b2d9d8d11a2844036a2.html",
+      "bytes": 26227,
+      "sha256": "9a7d39ee4402222249fdf7e7dbf74183cb5ea63533f36a73accca293e88077c5"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=115",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "95842eeb-cf1f-4f6c-b1ab-f56255571ee0",
+          "slug": "latin-lawyer-panama-papers-leak-sparks-mexican-investigation-fernando-carreno-115"
+        }
+      ],
+      "localPath": "legacy-archive/html/7a2d1aebbe7c17c051e2e3b14018f9a076231cfc8b2b68ddcbcfa93e89ed206a.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/7a2d1aebbe7c17c051e2e3b14018f9a076231cfc8b2b68ddcbcfa93e89ed206a.html",
+      "bytes": 24230,
+      "sha256": "9b048b4b7ae2d0eb225f622cf852ddf29934c6b50a67c762cd6bc7d2829c1b90"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=117",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "42927508-c7bf-468a-b2d1-9ffc155f6a5d",
+          "slug": "global-competition-review-gcr-panama-papers-leak-sparks-mexican-investigation-fernando-carreno-117"
+        }
+      ],
+      "localPath": "legacy-archive/html/34e03bd4762efd9fa7a4cac21d95ffaf407dbb9640dd9ae8d809f6419e407211.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/34e03bd4762efd9fa7a4cac21d95ffaf407dbb9640dd9ae8d809f6419e407211.html",
+      "bytes": 24268,
+      "sha256": "f28a22ce3a34da5eedf920a505822a2881d1eacbecbc6dd54a193362a495b00d"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=119",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "2c19974c-b3fc-4548-9c91-6622c12bea34",
+          "slug": "latin-lawyer-mexico-passes-crazy-transparency-law-adrian-magallanes-119"
+        }
+      ],
+      "localPath": "legacy-archive/html/fe7c9b21093a075f8fea9ba4146c032cb73fd991a621ac405af804eeaa21b066.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/fe7c9b21093a075f8fea9ba4146c032cb73fd991a621ac405af804eeaa21b066.html",
+      "bytes": 24268,
+      "sha256": "dcd2e594c83bca9c7ecfcbe8eb3a9f95ab7ff074442dd894d4380f6c6462b165"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1196",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "78466f6a-166b-4507-a1a4-1502f649ae8a",
+          "slug": "santander-desarrolla-una-estrategia-de-pagos-en-mexico-1196"
+        }
+      ],
+      "localPath": "legacy-archive/html/5cd9ab1f06ddc5018ae89a246c038d7b432b268aab7fa54f421b50a3376465d5.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/5cd9ab1f06ddc5018ae89a246c038d7b432b268aab7fa54f421b50a3376465d5.html",
+      "bytes": 25842,
+      "sha256": "5dac8fba609b64733268ab5cb2d88cea6f10b3d44f4194951fc97f9dc35801d9"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1197",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "a2f62cbc-24a7-4e58-96a4-b3d4ded3e828",
+          "slug": "ab-inbev-reitera-su-apuesta-por-la-energia-renovable-en-mexico-1197"
+        }
+      ],
+      "localPath": "legacy-archive/html/1c8b02c531daefe3c384e96fb5bb4668df9169ea3ab22c7055240ca035471cd4.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/1c8b02c531daefe3c384e96fb5bb4668df9169ea3ab22c7055240ca035471cd4.html",
+      "bytes": 25194,
+      "sha256": "6dd5ab19638ba8bf938dd572c30cc06888c24b9146a6daa36897569ce48c4b46"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1205",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "c540444c-565d-4cd3-84dd-cdc25aa475bb",
+          "slug": "actualizacion-suspension-de-terminos-y-plazos-de-la-comision-reguladora-de-energia-1205"
+        }
+      ],
+      "localPath": "legacy-archive/html/ba302baa3e1a6c7c68ff9b935d60eaabc80c1a9b9ee706c917085b6c2f69db62.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/ba302baa3e1a6c7c68ff9b935d60eaabc80c1a9b9ee706c917085b6c2f69db62.html",
+      "bytes": 25282,
+      "sha256": "a6bed61774fd4b6e59bf99bd830eccbde57498c2f14620a3ac2a21e438c46a75"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=121",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "c2f696a5-f3d5-4171-99d0-a952a58cf2ef",
+          "slug": "global-investigations-review-gir-mexico-passes-crazy-transparency-law-adrian-magallanes-121"
+        }
+      ],
+      "localPath": "legacy-archive/html/3846173112586ff9ec7818c83bfa78185f11ddce7a5388e76fd1f11a6e40f25c.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/3846173112586ff9ec7818c83bfa78185f11ddce7a5388e76fd1f11a6e40f25c.html",
+      "bytes": 24314,
+      "sha256": "799e1158365b68ce324cf4ca7945ba94f95ea3946e01790189da0e20fbc97a1e"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1250",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "44aff1af-87d0-47ea-aba4-fe05e5029ae9",
+          "slug": "el-cjf-considera-asunto-urgente-a-las-medidas-cautelares-en-concursos-mercantiles-1250"
+        }
+      ],
+      "localPath": "legacy-archive/html/a832c9ca167c86667b8eea8a278a920cd0becd15e0c91c332aaa191498dfa6ed.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/a832c9ca167c86667b8eea8a278a920cd0becd15e0c91c332aaa191498dfa6ed.html",
+      "bytes": 26660,
+      "sha256": "a13e683386f262a2d7377ad8be7cfc22c1664940d821757e6e521793917e200d"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1265",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "5dcec8ed-049b-4321-b076-3713a07b0648",
+          "slug": "cenace-suspende-pruebas-preoperativas-e-impone-limites-a-la-transmision-de-centrales-electricas-1265"
+        }
+      ],
+      "localPath": "legacy-archive/html/245b8bafb8530c1cf7e867898eb39e0c8ee297dfcc8532536eede37ed8276fef.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/245b8bafb8530c1cf7e867898eb39e0c8ee297dfcc8532536eede37ed8276fef.html",
+      "bytes": 28771,
+      "sha256": "7f4dd1b5125460a1b9a133649732134a998bc96a100f8756dfe15b788fee353b"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1807",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "ed6f3c93-30d1-46ea-a887-00990870a206",
+          "slug": "el-lavado-de-dinero-y-las-criptomonedas-primera-parte-thomson-reuters-2020-2"
+        }
+      ],
+      "localPath": "legacy-archive/html/6ebd3cc45defd36791e36dfb47d18ce4c1f40df24da2f6145c0fd423bc0e7cb6.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/6ebd3cc45defd36791e36dfb47d18ce4c1f40df24da2f6145c0fd423bc0e7cb6.html",
+      "bytes": 23807,
+      "sha256": "cdd058c2e4e60544ef0d2bd07c9bef96155c65354a9e7daca2aaacc669f17f6b"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1808",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "59a1de11-dc6c-4fcf-b9ca-51fad251a9ea",
+          "slug": "el-lavado-de-dinero-y-las-criptomonedas-segunda-parte-thomson-reuters-2021-2"
+        }
+      ],
+      "localPath": "legacy-archive/html/eb5771f4bea872ee7a28ff7dcf1529bae3e5d20d94bfed42872e90a459e59d2d.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/eb5771f4bea872ee7a28ff7dcf1529bae3e5d20d94bfed42872e90a459e59d2d.html",
+      "bytes": 23807,
+      "sha256": "560da19643632b844f6fa105cf7c30a33c75dcf5e243e6fdabc4b4812ef97713"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1809",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "4ffb1ef8-c8d0-41c9-a1b0-b900bcb61355",
+          "slug": "responsabilidad-penal-de-la-empresa-y-del-abogado-thomson-reuters-2020-2"
+        }
+      ],
+      "localPath": "legacy-archive/html/81d46f6a2ec7f84990c87c937ef1fa0b0c15cd796bf0a0cbd611c28029b4250c.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/81d46f6a2ec7f84990c87c937ef1fa0b0c15cd796bf0a0cbd611c28029b4250c.html",
+      "bytes": 23795,
+      "sha256": "41c3326aa577350b9b6a3c1f1b24f7a09774ebf8c08b0d65a52d944d37e83037"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1812",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "83f05ea3-0a3c-40f4-ab82-d4a5224c97b7",
+          "slug": "el-tratamiento-fiscal-de-las-criptomonedas-thomson-reuters-2022-2"
+        }
+      ],
+      "localPath": "legacy-archive/html/139c8a302a0b51521dbb4e4f7071e578b5e783007e4acdafd90d1870cd3bdbfa.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/139c8a302a0b51521dbb4e4f7071e578b5e783007e4acdafd90d1870cd3bdbfa.html",
+      "bytes": 23781,
+      "sha256": "3943bb576f2158866bff1d91c1be09f712bc3db492f49cff567af0c44c328045"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1813",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "cb5c1ee1-54f9-4689-a806-1eb274bc61ef",
+          "slug": "la-tokenizacion-de-las-cosas-revista-del-ilustre-y-nacional-colegio-de-abogados--2"
+        }
+      ],
+      "localPath": "legacy-archive/html/8ce0e35c1fe60d92d33f41f0828ba43283eaf0e20a9a5ac1579b555939ac813e.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/8ce0e35c1fe60d92d33f41f0828ba43283eaf0e20a9a5ac1579b555939ac813e.html",
+      "bytes": 23847,
+      "sha256": "e4c50de7bb3fe8cbefd7ed43ddaab83b437a4023f17ac047a621ff4c9cae0dbd"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1815",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "dd355580-337a-4753-8c05-3376dfefa8a4",
+          "slug": "politica-criminal-contemporanea-de-la-secretaria-de-hacienda-y-credito-publico-t-2"
+        }
+      ],
+      "localPath": "legacy-archive/html/f85e305560d5c4c05727f00d79deebe0b2fc7feccbfc48be44da77e3f31e7cbe.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/f85e305560d5c4c05727f00d79deebe0b2fc7feccbfc48be44da77e3f31e7cbe.html",
+      "bytes": 23863,
+      "sha256": "b657d5029981b948f343c79249063f20d543a6dda30a04437a2ae71e5fdc8366"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1816",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "51456133-d260-4f4f-9383-e559f960afaf",
+          "slug": "prescripcion-penal-fiscal-thomson-reuters-2015-2"
+        }
+      ],
+      "localPath": "legacy-archive/html/ff581c2544bb9557b2a6f5f1fd70f36c2cc9ffa3df62ae82e1379bb1987d0faf.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/ff581c2544bb9557b2a6f5f1fd70f36c2cc9ffa3df62ae82e1379bb1987d0faf.html",
+      "bytes": 23749,
+      "sha256": "1300ab172c7044eab62c1f4cb20ca00238b6d7d5ad2641c781c8edf1409eddfd"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1817",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "dcf35485-3541-4cfc-8593-f9c62419505c",
+          "slug": "comentarios-sobre-el-delito-de-defraudacion-fiscal-equiparada-relacionada-con-el-2"
+        }
+      ],
+      "localPath": "legacy-archive/html/c08ee93b1175d3788d55b171ed39bfff0a8802eab86a8e9ac85d399c3fd58e3e.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/c08ee93b1175d3788d55b171ed39bfff0a8802eab86a8e9ac85d399c3fd58e3e.html",
+      "bytes": 23989,
+      "sha256": "c58787847c86cdaa19ae9cc29ed97035cf8eeeaea2cb665a67cf09dd00d63822"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1911",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "ff4ea0b6-481a-43d2-9aac-c790ca47c8fd",
+          "slug": "propuesta-de-reforma-a-la-lfpiorpi-y"
+        }
+      ],
+      "localPath": "legacy-archive/html/0760e9eed45af0d7461e61df9a46f8a57f3603dc93e14d2194c9966aa5348408.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/0760e9eed45af0d7461e61df9a46f8a57f3603dc93e14d2194c9966aa5348408.html",
+      "bytes": 34512,
+      "sha256": "e7feaa9cd33101755ed46360e5e31c288a5f3628d11111718bac1a77bcd4b42b"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1927",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "5a7e0fe2-0d8a-4175-be4f-aabea56862fa",
+          "slug": "nuevos-salarios-minimos-a-partir-del-1"
+        }
+      ],
+      "localPath": "legacy-archive/html/0d788248b5f1682927ef976a3ac0465e48af4e7d17e8bbb803395f7d0a7295f5.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/0d788248b5f1682927ef976a3ac0465e48af4e7d17e8bbb803395f7d0a7295f5.html",
+      "bytes": 23809,
+      "sha256": "cf59f07432fb4aed1d1df99396e832a92cd8d4c6465f14c1aa8b9a047443eab9"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1930",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "30af31ac-2a9f-4988-aacd-fd857a3fe8a2",
+          "slug": "mexico-expresa-a-la-onu-posicion"
+        }
+      ],
+      "localPath": "legacy-archive/html/4ce205bf37bf4c1ae46e40d53595219d5d105e832da1a571271ab32751657c42.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/4ce205bf37bf4c1ae46e40d53595219d5d105e832da1a571271ab32751657c42.html",
+      "bytes": 30351,
+      "sha256": "2653591fa1a9000fb112372b8ce4ad3a121c15d39ac4fe7f640fad8f6b4dc8ed"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1933",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "7cfcec9f-6f61-4260-87d4-5f1539e03564",
+          "slug": "nuevos-valores-de-la-uma-vigentes-a"
+        }
+      ],
+      "localPath": "legacy-archive/html/197a7278f40576f34707cfda3f91743d03486e0c0e67a8076aad838154e43020.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/197a7278f40576f34707cfda3f91743d03486e0c0e67a8076aad838154e43020.html",
+      "bytes": 26329,
+      "sha256": "4f29e9411e8bd11bcf5352c7c374f7be730acb1aa3bf5d471a5bcc8f55495b82"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1935",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "b5dcec5e-c153-4ee6-8e23-da458e1a39f8",
+          "slug": "propuesta-de-servicios-legales-y-de"
+        }
+      ],
+      "localPath": "legacy-archive/html/863b6a6a9fc702e93188fac7905be2c849c5cf44b56d013ef25a7bd436ce7a1d.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/863b6a6a9fc702e93188fac7905be2c849c5cf44b56d013ef25a7bd436ce7a1d.html",
+      "bytes": 35405,
+      "sha256": "534999e2af99c9a6f6b6d1f6721a8c9fe5183f54c0d815dd85b8480f567919ed"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1937",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "242eccd7-8db8-4e4d-99ab-a035fccdf591",
+          "slug": "reforma-laboral-en-materia-de-trabajo"
+        }
+      ],
+      "localPath": "legacy-archive/html/ee2f66e6de21d861e50c664c9eb76d35bb806fd7a38ccb3ec0bbfd426273cf4c.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/ee2f66e6de21d861e50c664c9eb76d35bb806fd7a38ccb3ec0bbfd426273cf4c.html",
+      "bytes": 30282,
+      "sha256": "80d914370826b4360108a58c7c3d50d112f414ee45615f94dd25054897f4d258"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1939",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "511b1b18-e06c-4ade-b955-768b42f5bb8e",
+          "slug": "flexibilizacion-de-la-prohibicion-de"
+        }
+      ],
+      "localPath": "legacy-archive/html/8ed54e43f0222cacb460608973f03cd171d74265be59b8a234c6748982b87078.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/8ed54e43f0222cacb460608973f03cd171d74265be59b8a234c6748982b87078.html",
+      "bytes": 26458,
+      "sha256": "1f62d0b5c8dc1092b6d96ab0b7b4f683dfd3c6b68617a4f100ae276184973278"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1953",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "fa066d4b-e4be-4395-b3e7-ba2ea8662b32",
+          "slug": "publicacion-de-criterio-sobre"
+        }
+      ],
+      "localPath": "legacy-archive/html/7b198c62a8908889b32f4922029dd3d368146b3e6e50649b5d09efbf09f46d71.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/7b198c62a8908889b32f4922029dd3d368146b3e6e50649b5d09efbf09f46d71.html",
+      "bytes": 29158,
+      "sha256": "69907da2c168a0a8740197b7350d903c02b9b8033226762f4eaed776c829ba23"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1957",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "189aeb89-a442-43ba-b643-e593623c6e96",
+          "slug": "nuevas-leyes-secundarias-modifican-el"
+        }
+      ],
+      "localPath": "legacy-archive/html/c2635fe63962959f8abed3b33609a96b263252d84ed92cb438d23a56c65f4d83.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/c2635fe63962959f8abed3b33609a96b263252d84ed92cb438d23a56c65f4d83.html",
+      "bytes": 26970,
+      "sha256": "994ad852783a9f40df8bfa0dafd37b382e1b7b7f57314cfb17d7bd7615c37dab"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1960",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "a834d95d-7f85-422a-b7d6-32bfdac9d083",
+          "slug": "tax-incentives-granted-to-taxpayers-operating-within-the-economic-development-hubs-for-well-bein-1960"
+        }
+      ],
+      "localPath": "legacy-archive/html/fed347e4c72d4414f698c8d8ffd6880bad94b3277ea8a78bbd64ee7a51f067f2.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/fed347e4c72d4414f698c8d8ffd6880bad94b3277ea8a78bbd64ee7a51f067f2.html",
+      "bytes": 27951,
+      "sha256": "b25905b650cae0ce1b6a67cb3bc33c801ef1f9bd8292196d387c7fbc0623269a"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1963",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "ddf693b2-43c4-4891-9920-702dff51a66a",
+          "slug": "entran-en-vigor-disposiciones-para-la"
+        }
+      ],
+      "localPath": "legacy-archive/html/f2724f30d4a8a0d5c4a2ac0fb63d553b5bea5e0d3587d8d8023a7b84bc8f2021.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/f2724f30d4a8a0d5c4a2ac0fb63d553b5bea5e0d3587d8d8023a7b84bc8f2021.html",
+      "bytes": 33902,
+      "sha256": "fddec33fecfec899245ca0680863bd5f98c1878f5bcebeff7d10f427477cb847"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1965",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "f7065f97-30c1-4ccf-a67e-99ad8404a02d",
+          "slug": "implicaciones-fiscales-de-las-recientes"
+        }
+      ],
+      "localPath": "legacy-archive/html/943beb3a7f05ccfa20216c530550581ec5d5fb20cb0b38cee05c8187c9338805.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/943beb3a7f05ccfa20216c530550581ec5d5fb20cb0b38cee05c8187c9338805.html",
+      "bytes": 34509,
+      "sha256": "baaea12c653a60ce5d557320102e8b4439af821041ab729f46473dd9fbb52931"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1967",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "238873f6-31e5-4b53-9526-2e23b4012653",
+          "slug": "nuevas-leyes-secundarias-para-el-sector"
+        }
+      ],
+      "localPath": "legacy-archive/html/1a7239af9f7ccdec1c56b1b08a70ada7a49c3fab54df5f16838f0e875d7bf769.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/1a7239af9f7ccdec1c56b1b08a70ada7a49c3fab54df5f16838f0e875d7bf769.html",
+      "bytes": 46248,
+      "sha256": "107a5b66bdb36e4d9d5bb8e84e95f5893301c209922e0ecf6d4259f40addbd5a"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1971",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "208f791b-7acb-4874-bdf4-29c2bb72a659",
+          "slug": "nuevas-leyes-en-materia-de"
+        }
+      ],
+      "localPath": "legacy-archive/html/ce7a1f70072ba1afc05f69a54b681bbfc4342818e3c82464237a337553cb18bb.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/ce7a1f70072ba1afc05f69a54b681bbfc4342818e3c82464237a337553cb18bb.html",
+      "bytes": 27659,
+      "sha256": "47284bffabbd940e4b0df68758530caa219f10ccc5f52e86683ac181c25f937c"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1973",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "1d71da1b-f62b-4306-ab2e-316272415c17",
+          "slug": "nueva-declaracion-informativa-sobre"
+        }
+      ],
+      "localPath": "legacy-archive/html/ebb55374ae01ecdb29ad2c9782b0db02842a084916a1edaecae235a0d9c6ab35.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/ebb55374ae01ecdb29ad2c9782b0db02842a084916a1edaecae235a0d9c6ab35.html",
+      "bytes": 26636,
+      "sha256": "8accef2ec5d3063f5f0ac29e622707f93198788a805724e44c0298736f56aee4"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1975",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "7cfc561e-3662-47be-aaa3-2ddeaaddf149",
+          "slug": "se-publica-iniciativa-de-reforma-a-la-ley"
+        }
+      ],
+      "localPath": "legacy-archive/html/9b7f5686bf61be9bbb51e0f5d2f72e104ad5261db33fb322dbb70c5d79c32ea7.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/9b7f5686bf61be9bbb51e0f5d2f72e104ad5261db33fb322dbb70c5d79c32ea7.html",
+      "bytes": 27856,
+      "sha256": "e8db79bf0132b55c8ec5564ed88e0e561fe48e2bc7577ddcd44e8dc9fa6ddc07"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1977",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "c3fc99f2-ff4c-4387-abd6-d790f7b26a7c",
+          "slug": "simplificacion-y-mejora-regulatoria-de"
+        }
+      ],
+      "localPath": "legacy-archive/html/69b399d6c1221609cbee5718f3c56ac34ccff2f694c27597b8601408f83043ea.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/69b399d6c1221609cbee5718f3c56ac34ccff2f694c27597b8601408f83043ea.html",
+      "bytes": 28236,
+      "sha256": "cfa802a03cb808aa6a88c4c12e542d43abc69536441f558230e5397a01bc1ebb"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1983",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "141c8f8e-30a8-4553-a556-8916e5a4fdba",
+          "slug": "ley-silla-disposiciones-sobre-los-factores-de"
+        }
+      ],
+      "localPath": "legacy-archive/html/2d1f2e359234ddc4932f5127627f2c90ba47f68d7052ec200869fe875d8d84fe.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/2d1f2e359234ddc4932f5127627f2c90ba47f68d7052ec200869fe875d8d84fe.html",
+      "bytes": 27277,
+      "sha256": "58fd3ec20336d5f711cb9a560ca3598fead5632aa9e4dfb3bbf39010548c5a1a"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1985",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "58f2be9c-9298-4a84-b2eb-a80391bf5070",
+          "slug": "actualizaciones-regulatorias-en-el-sector-de"
+        }
+      ],
+      "localPath": "legacy-archive/html/01b9d861323f1b7259ef61235337d69048ab2963dc605e6bcaafd4fbeec33cca.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/01b9d861323f1b7259ef61235337d69048ab2963dc605e6bcaafd4fbeec33cca.html",
+      "bytes": 37178,
+      "sha256": "7944239464298bb3463e65466be98807097ad06c3ac6ee8b0c6bc4a00530497d"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=23",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "ccefd4fa-4e97-4254-bee0-1bd87a891003",
+          "slug": "latin-lawyer-mexico-pursues-first-criminal-action-against-cartelists-fernando-carreno-23"
+        }
+      ],
+      "localPath": "legacy-archive/html/3a60017e71b0117f7d795ccd3dbe3f39db3c9b54d76a6389f1fd99bbb012aa8b.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/3a60017e71b0117f7d795ccd3dbe3f39db3c9b54d76a6389f1fd99bbb012aa8b.html",
+      "bytes": 24331,
+      "sha256": "0561a1db9a47fa4d87f30fde6337dd3adff89acf0de5d0a05550089eb2b27d86"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=25",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "38d9c70d-4ff0-4015-9781-18fdc6491b28",
+          "slug": "global-competition-review-gcr-mexico-pursues-first-criminal-action-against-cartelists-fernando-c-25"
+        }
+      ],
+      "localPath": "legacy-archive/html/e580377c6324ab442a975d8b93352edfb86b2542f720a789476c86f8eacd3422.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/e580377c6324ab442a975d8b93352edfb86b2542f720a789476c86f8eacd3422.html",
+      "bytes": 24312,
+      "sha256": "1b55d89e29258a036d741274266f2fd5edfeb7da160f04e4494f3eb7e120572e"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=27",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "847916db-b844-42e7-95a9-e24bde57d0f6",
+          "slug": "constitutional-labor-reform-27"
+        }
+      ],
+      "localPath": "legacy-archive/html/f73e333058330f6401f0d8d06d54032d5a09795ad0e33400c0a9a9572c8e99c1.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/f73e333058330f6401f0d8d06d54032d5a09795ad0e33400c0a9a9572c8e99c1.html",
+      "bytes": 25005,
+      "sha256": "e141c7fe2b3e9c4f6daea76f792be3f454de16c3df63553e89446a47bc831bb1"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=274",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "db73e6b7-78df-4f1c-b75c-4ea0d8c02edb",
+          "slug": "new-minimum-wage-as-of-january-1st-2016-274"
+        }
+      ],
+      "localPath": "legacy-archive/html/2d97daacddc01b69a4b6b86836a735292d1c53482bcd35ca33485f69dc593e81.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/2d97daacddc01b69a4b6b86836a735292d1c53482bcd35ca33485f69dc593e81.html",
+      "bytes": 24137,
+      "sha256": "69797b5d986249c2e25124a33f88887ce2dbb5a3a9f393e3dd941801101b1bfd"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=29",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "dc6e14dc-2b58-4aae-a0bc-45cad850d4c1",
+          "slug": "montserrat-manzano-yai-talks-miami-conquering-new-grounds-the-finance-and-banking-industry-29"
+        }
+      ],
+      "localPath": "legacy-archive/html/b49eed4339dd13faba24ba3bbf80123853560287a2aeef9314b36d764cdd34b3.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/b49eed4339dd13faba24ba3bbf80123853560287a2aeef9314b36d764cdd34b3.html",
+      "bytes": 24407,
+      "sha256": "6faba4964993206c24111af65cd7360c63c001263fd7520bc90c8321156e84db"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=31",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "aa8ea778-0742-4734-bed8-3407803198f0",
+          "slug": "client-communication-personal-data-protection-in-mexico-31"
+        }
+      ],
+      "localPath": "legacy-archive/html/3ac8f7d3794cda1059c24b3976c664481bd9fd27504e6fe675fb66ac4cb4cd19.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/3ac8f7d3794cda1059c24b3976c664481bd9fd27504e6fe675fb66ac4cb4cd19.html",
+      "bytes": 25581,
+      "sha256": "f380c5772464100413cfff93614b492ef0923bb4485bd80f4ebf446ee1ff31d6"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=33",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "2a59ecdf-f10b-4d95-bc08-f18d96fbeedc",
+          "slug": "principal-changes-to-tax-provisions-for-2017-33"
+        }
+      ],
+      "localPath": "legacy-archive/html/f33b6b2a1279e2f1da8160d72955e05dc0e0956b986f499fac1e1177bd1116d7.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/f33b6b2a1279e2f1da8160d72955e05dc0e0956b986f499fac1e1177bd1116d7.html",
+      "bytes": 25554,
+      "sha256": "d18b81cd207e4d5cb6a1cd9e797a44fdddc0e084d9482c1885a461574c2f08dd"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=37",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "b1ed318d-3153-43ba-ab9b-10326bd56443",
+          "slug": "latin-lawyer-andres-nieto-rodolfo-trampe-edmond-grieger-y-alberto-cordoba-prince-international-a-37"
+        }
+      ],
+      "localPath": "legacy-archive/html/cc6bf69b0ee020642ae0b1cf344a32069c8732d29e36061976f465910cf2dbf4.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/cc6bf69b0ee020642ae0b1cf344a32069c8732d29e36061976f465910cf2dbf4.html",
+      "bytes": 24416,
+      "sha256": "cd3ec2136d4954eb3441f58dd1fc27b6a2b904f307e20989140173dc855f29bc"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=39",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "e3dffbcd-9753-491c-8d31-34435345fbd4",
+          "slug": "latin-lawyer-fernando-carreno-post-closing-tax-liabilities-among-the-gratest-challenges-for-m-a-39"
+        }
+      ],
+      "localPath": "legacy-archive/html/28489e4eb357c022ce110c6484cb73fa8621a50ab7db11be3f478eab2677e244.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/28489e4eb357c022ce110c6484cb73fa8621a50ab7db11be3f478eab2677e244.html",
+      "bytes": 24349,
+      "sha256": "c903efbbc2ecbe5dea05dbaca20cd17a672860cc2f26a37696081a71073b43f2"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=41",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "1f7c2c40-97ba-47f0-83ed-4c4206a81301",
+          "slug": "who-s-who-legal-recognizes-partners-lawyers-at-von-wobeser-y-sierra-41"
+        }
+      ],
+      "localPath": "legacy-archive/html/49da45670115ca36c94264fc0288391093686b6413942240310dfc919ea8ee5c.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/49da45670115ca36c94264fc0288391093686b6413942240310dfc919ea8ee5c.html",
+      "bytes": 24679,
+      "sha256": "cb720a01df164be9ca4420d8b0a66cb5289514b84ad2b16d3384472d004dc239"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=43",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "88249310-92c5-40dd-b3a7-e1056fb82223",
+          "slug": "who-s-who-legal-recognizes-partners-associates-of-von-wobeser-y-sierra-in-who-s-who-legal-mexico-43"
+        }
+      ],
+      "localPath": "legacy-archive/html/e4bbe6bc868a103b6ffbea5d570ea8f9c826ace4b4e0e18b7261422d01f62259.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/e4bbe6bc868a103b6ffbea5d570ea8f9c826ace4b4e0e18b7261422d01f62259.html",
+      "bytes": 25012,
+      "sha256": "8f645f9ee851eb940e34dc6524ed49b5c5f5714e5db68f03d515ea19d4a70198"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=439",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "ed761a99-7bbf-418a-ac32-0689cc41ffb1",
+          "slug": "von-wobeser-y-sierra-recognized-by-gcr-100-as-one-of-the-best-100-firms-in-competition-in-the-wo-439"
+        }
+      ],
+      "localPath": "legacy-archive/html/398917db09dca724316d35843816dff06f4d28ba37d817e69d3f809a6174ff3d.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/398917db09dca724316d35843816dff06f4d28ba37d817e69d3f809a6174ff3d.html",
+      "bytes": 24698,
+      "sha256": "7787aaaf842ec36fe85d0950d8a867c51a95e843d98fa6a8f96925b3d96d6129"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=45",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "368e1277-5f48-40b6-ad9e-912bf7a47b91",
+          "slug": "icc-international-chamber-of-commerce-icc-mexico-mediation-committee-alexandra-von-wobeser-45"
+        }
+      ],
+      "localPath": "legacy-archive/html/411e24e294cfe6a1c15940d566fb0b7c765775fe5b67c979c03b07150699d77e.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/411e24e294cfe6a1c15940d566fb0b7c765775fe5b67c979c03b07150699d77e.html",
+      "bytes": 23994,
+      "sha256": "7a316196a178be9256c44b0943aafc67d147bdbaeecd3212d0904d84af417995"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=47",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "665027a0-8a95-4c61-9ad4-90fc57ee0360",
+          "slug": "energy-regulatory-commission-sets-forth-requirements-and-grants-a-time-extension-to-execute-inte-47"
+        }
+      ],
+      "localPath": "legacy-archive/html/f393fc45b10055cd53fbecf9f65a0751695f02819fd30c9dfec78ae023a32b93.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/f393fc45b10055cd53fbecf9f65a0751695f02819fd30c9dfec78ae023a32b93.html",
+      "bytes": 24921,
+      "sha256": "592e86d59db35a1af606ecf064c61795bbb6a0d40617db9f4a3f303f37e1b3a4"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=49",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "1c6cac73-d2f2-4b92-b2e7-6866ecafb2b6",
+          "slug": "leader-league-business-and-leadership-institute-for-transnational-arbitration-ita-montserrat-man-49"
+        }
+      ],
+      "localPath": "legacy-archive/html/e4344044d5330ba267c2d8fb9905f2a749d018dbb03e1dc17e7187597a2d2c4b.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/e4344044d5330ba267c2d8fb9905f2a749d018dbb03e1dc17e7187597a2d2c4b.html",
+      "bytes": 24318,
+      "sha256": "5d353d483c624618ea31764c54559bb8d6247b175680d03e96650651ec05087b"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=51",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "0fceadda-689c-4dbc-b9df-d9316b0163e0",
+          "slug": "latin-lawyer-leading-lights-von-wobeser-y-sierra-s-c-latin-american-pro-bono-leader-51"
+        }
+      ],
+      "localPath": "legacy-archive/html/60862f5e543ae1ba634803789b857bae470105dffccc4bf33ebd049063dc9905.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/60862f5e543ae1ba634803789b857bae470105dffccc4bf33ebd049063dc9905.html",
+      "bytes": 24878,
+      "sha256": "bda277c3fb3bf67ffe925911e4fbbb9e5e3bef3b2cad58fb264339deef4e4a8a"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=53",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "79bfb09d-743e-45f4-9242-ec3f84d7638f",
+          "slug": "who-s-who-legal-recognizes-future-leaders-2017-these-are-partners-and-non-partners-aged-45-or-un-53"
+        }
+      ],
+      "localPath": "legacy-archive/html/d1f6e97d5b553206fc36ed7b023a57437b6c799157a01f27ba2889df8a96357a.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/d1f6e97d5b553206fc36ed7b023a57437b6c799157a01f27ba2889df8a96357a.html",
+      "bytes": 25708,
+      "sha256": "bbeb4d940f05b31ae2469bb7e13a26fb034c7ae82ba9eab31afbf7c6bcf830e1"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=57",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "94ba6972-92c4-42bd-b89b-5ef5aa318ce9",
+          "slug": "pena-nieto-proposes-that-head-of-the-attorney-general-s-office-be-appointed-by-senate-57"
+        }
+      ],
+      "localPath": "legacy-archive/html/9b0aad5971f810c80d2b3d488bd124bcb1b67873ecb14102044e064ec2c00b37.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/9b0aad5971f810c80d2b3d488bd124bcb1b67873ecb14102044e064ec2c00b37.html",
+      "bytes": 25446,
+      "sha256": "a3268baa8133cdf329f37f671686cb771993a9f31cfbeae25211f56a2d40d9f9"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=61",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "864a9942-a8a8-41d6-8a44-cf93642f3fde",
+          "slug": "potential-withdrawal-from-the-north-american-free-trade-agreement-61"
+        }
+      ],
+      "localPath": "legacy-archive/html/ca3a38d859f86cab2b2052fb8f53a2552d7eb9f6cea137de76ad0e7d86cabffc.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/ca3a38d859f86cab2b2052fb8f53a2552d7eb9f6cea137de76ad0e7d86cabffc.html",
+      "bytes": 25275,
+      "sha256": "213452be57f89f827b758ba2e16650b08aa4de1011a1b8979ab72da879fd2afe"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=63",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "28d6cb50-c480-47ec-96fb-d99b72acf6ac",
+          "slug": "iba-judicial-integrity-initiative-judicial-anti-corruption-compact-63"
+        }
+      ],
+      "localPath": "legacy-archive/html/d7c1f092d51943b0ba0313ce9f7371acf1067558a59a3280a3a0f4699df394cb.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/d7c1f092d51943b0ba0313ce9f7371acf1067558a59a3280a3a0f4699df394cb.html",
+      "bytes": 24824,
+      "sha256": "e2d0819b3e711c2a4c19086b49f4cf59ea3ff31d69f786be2e723906d1a0a07b"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=65",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "835dda88-9955-4b27-98e0-a149b1e1b3ca",
+          "slug": "von-wobeser-y-sierra-s-attorneys-sign-the-iba-anticorruption-compact-65"
+        }
+      ],
+      "localPath": "legacy-archive/html/23e1071e800c1a190171e26b7cead4067a93c9d818a1f4994fc1262c7fb8ea7f.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/23e1071e800c1a190171e26b7cead4067a93c9d818a1f4994fc1262c7fb8ea7f.html",
+      "bytes": 26031,
+      "sha256": "81d3484b20883ba6eecc4a6d68f579ef8431bda07c06082ec98cc5002e778b38"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=67",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "d466035b-63ad-4897-ad7f-17155a994bd1",
+          "slug": "luis-burgueno-gloria-martinez-alberto-cordoba-jorge-diaz-y-marisol-marquez-lexlatin-san-benedett-67"
+        }
+      ],
+      "localPath": "legacy-archive/html/8324367197bafc109a5a2af33364678d97f6fbf7e4ccebbe1f4602df044b0670.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/8324367197bafc109a5a2af33364678d97f6fbf7e4ccebbe1f4602df044b0670.html",
+      "bytes": 24728,
+      "sha256": "7403f0e5113b3a055d82ce57597e420e71ff37539805bbdca781ccc6b1bca811"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=69",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "4b2e5251-a285-4428-902a-7e16522cec5c",
+          "slug": "arbitral-women-in-latin-america-mexico-city-69"
+        }
+      ],
+      "localPath": "legacy-archive/html/7029973900353940cd07cabef39ca7670e46dc26a8591cfc3b8fec5c86231398.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/7029973900353940cd07cabef39ca7670e46dc26a8591cfc3b8fec5c86231398.html",
+      "bytes": 24410,
+      "sha256": "bd05eafd855553667a266de407996f2a7b55efcd0d0c86fa1716daa2d9837f50"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=71",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "0444bf18-4509-47de-beb5-5a19f422d23c",
+          "slug": "cenace-announces-the-winners-of-the-second-long-term-auction-for-energy-cels-and-capacity-71"
+        }
+      ],
+      "localPath": "legacy-archive/html/49d2dc2e4eb02647a7a152286a331f82b328924b054b094f96a3be76e8c0e654.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/49d2dc2e4eb02647a7a152286a331f82b328924b054b094f96a3be76e8c0e654.html",
+      "bytes": 27200,
+      "sha256": "641cba7950ad3c7946ab09e55462acd044543f92fd537d9348b742ae8d227c63"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=73",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "ac4649fd-c99d-41e7-aab8-d01c133e4608",
+          "slug": "global-investigations-review-gir-100-diego-sierra-the-world-s-leading-investigations-practices-r-73"
+        }
+      ],
+      "localPath": "legacy-archive/html/3dac78ed4828320d3740e62315e38f9698b3f0e55f4c6f12f99003b1e44b95a3.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/3dac78ed4828320d3740e62315e38f9698b3f0e55f4c6f12f99003b1e44b95a3.html",
+      "bytes": 24204,
+      "sha256": "eaca65839f9c807d2c2131242dd82e0e640d48918af887e8306da735f1764a5c"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=75",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "1aa9e99a-f2c6-4a47-b900-61008f04d224",
+          "slug": "latin-lawyer-fernando-carreno-antitrust-probe-targets-cancun-airport-75"
+        }
+      ],
+      "localPath": "legacy-archive/html/f10e3c7018626c38b4a452ab48e8620d45c9a607d14a49adc489a6d16c5b3380.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/f10e3c7018626c38b4a452ab48e8620d45c9a607d14a49adc489a6d16c5b3380.html",
+      "bytes": 24150,
+      "sha256": "e78ae2436352c60416447a1a7fc2a91843825151af8252d4f750d5a84f7d08cd"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=77",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "1251c96d-7edc-4384-9eef-47da4b60b321",
+          "slug": "latin-lawyer-luis-burgueno-rupert-huttler-alberto-cordoba-von-wobeser-allen-overy-steer-auto-iss-77"
+        }
+      ],
+      "localPath": "legacy-archive/html/1bd47423036b6fcd2880abb2b02d161d6ec5d22a7274e2b2f5c0feff40911121.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/1bd47423036b6fcd2880abb2b02d161d6ec5d22a7274e2b2f5c0feff40911121.html",
+      "bytes": 24526,
+      "sha256": "333af3b99a392ebec07dc0c820964bfef273b4ab40691eea54e9476555ad4e53"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=79",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "dcd6170b-4d1c-4dcd-a17b-b9175b8a500e",
+          "slug": "lex-latin-luis-burgueno-edmond-grieger-rodolfo-trampe-alberto-cordoba-marisol-marquez-von-wobese-79"
+        }
+      ],
+      "localPath": "legacy-archive/html/c73580c7117f002a54cb72b3aae07a0bbce0e69dbfe15466baf32c48120a287f.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/c73580c7117f002a54cb72b3aae07a0bbce0e69dbfe15466baf32c48120a287f.html",
+      "bytes": 24400,
+      "sha256": "837da0620f47a88c340d230ab082e193323120ee421869a799fbbbe9534af005"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=81",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "9bf8f37c-5e28-424f-9096-6f4c130359c0",
+          "slug": "latin-lawyer-luis-burgueno-edmond-grieger-rodolfo-trampe-alberto-cordoba-y-marisol-marquez-bain-81"
+        }
+      ],
+      "localPath": "legacy-archive/html/33aae405b38074f9fe4c5e36ef4146dcc20fec4abdfb514cfe7ab0015bb6c891.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/33aae405b38074f9fe4c5e36ef4146dcc20fec4abdfb514cfe7ab0015bb6c891.html",
+      "bytes": 24553,
+      "sha256": "55c5172f83c640c11b32be3207906028ea3d6c276b07a8fa8a7b2a158c01e991"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=83",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "7e7fda58-32af-4036-86f6-9eccad41d87e",
+          "slug": "fernando-carreno-gcr-global-competition-review-mexico-s-competition-bar-83"
+        }
+      ],
+      "localPath": "legacy-archive/html/5d814e63da596feb265c301cc1f9925c0c854b50202e9fa4fc3a97a39009b52b.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/5d814e63da596feb265c301cc1f9925c0c854b50202e9fa4fc3a97a39009b52b.html",
+      "bytes": 24086,
+      "sha256": "c5c6f4a203e96be6446ca536d38819621dce4150c2cff1c446beda9b851ae4f0"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=85",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "1196fbc1-3571-455a-8fad-e17dd16204df",
+          "slug": "von-wobeser-y-sierra-s-c-is-recognized-as-elite-firm-in-global-competition-review-85"
+        }
+      ],
+      "localPath": "legacy-archive/html/a6f7e70eb79610212000e8a75e13d96dd219f5adcf5cdf2ca4d17c784debf3ed.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/a6f7e70eb79610212000e8a75e13d96dd219f5adcf5cdf2ca4d17c784debf3ed.html",
+      "bytes": 24903,
+      "sha256": "cd5d004ad2b38602f8aa17ec2350e3dc3eecf0bb7c7d06fb8718d16e5e1725e1"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=87",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "54bd99b6-7e7c-437d-8eb6-bc3db0ea176e",
+          "slug": "global-competition-review-gcr-fernando-carreno-mexican-enforcer-urges-freight-industry-deregulat-87"
+        }
+      ],
+      "localPath": "legacy-archive/html/ea14b4596fb1b32e581e0da88f2b5925d9cea499dd8a463b7b64b6a78c8e82de.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/ea14b4596fb1b32e581e0da88f2b5925d9cea499dd8a463b7b64b6a78c8e82de.html",
+      "bytes": 24131,
+      "sha256": "0b66eae1540d4fd5d4d85a4f469075ded5e1db2b4c1d65bd78caf0cc63ace758"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=89",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "2b1f9161-fdc9-42ed-8e6f-132853cb198d",
+          "slug": "von-wobeser-y-sierra-s-c-invites-you-to-the-mexico-city-global-pound-conference-89"
+        }
+      ],
+      "localPath": "legacy-archive/html/e6c8f10c5d3a9ef5c6fde05baeb8e299f47d1dd4e1da975a5e7a908bc2806ddf.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/e6c8f10c5d3a9ef5c6fde05baeb8e299f47d1dd4e1da975a5e7a908bc2806ddf.html",
+      "bytes": 25654,
+      "sha256": "2b7d681563bfa53fcd4b5ebe98ada11880c5eebd5250dd0f7ba7c4ac30620104"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=91",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "23fe5d19-7efd-4d89-bc80-d8139f429d63",
+          "slug": "gcr-global-competition-review-turf-wars-the-threat-of-stand-offs-between-mexico-s-competition-en-91"
+        }
+      ],
+      "localPath": "legacy-archive/html/6998f74e161b3a35864a620ac8f5d48fd7db0919ea75e30cb80cf6d4a8b09ec3.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/6998f74e161b3a35864a620ac8f5d48fd7db0919ea75e30cb80cf6d4a8b09ec3.html",
+      "bytes": 24234,
+      "sha256": "9989b9522288149ba40bc481d214ff9e463e9266c5594a45851961d876ad52ea"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=951",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "f75367bf-53a3-4b05-a96f-73b111a4e122",
+          "slug": "amendment-requires-publication-of-partners-and-shareholders-of-limited-liability-companies-and-s-951"
+        }
+      ],
+      "localPath": "legacy-archive/html/e01abe3dd61bc14ca1c84c23ddf1ec85313c665289cb3ed77fc1734a721e851d.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/e01abe3dd61bc14ca1c84c23ddf1ec85313c665289cb3ed77fc1734a721e851d.html",
+      "bytes": 25035,
+      "sha256": "ba43120ea41890d4d65b38b5bd92a23c52714ca454ac8fbbe59a7543254392dc"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=957",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "53488d18-80bb-44d5-a1eb-6c14bda55d41",
+          "slug": "amendments-to-the-customs-law-and-creation-of-the-customs-agency-957"
+        }
+      ],
+      "localPath": "legacy-archive/html/532fdd5b99dc82c1780dc3d369941415769f0abafbbf3b9d440dfcac6819d2d6.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/532fdd5b99dc82c1780dc3d369941415769f0abafbbf3b9d440dfcac6819d2d6.html",
+      "bytes": 24317,
+      "sha256": "ca74f55f50758393151fb2eb608d8af75d3e7997adec3f2bc36c69c4aa42bb62"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=959",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "6fc4e2be-11a2-44bb-b263-90e8156990fd",
+          "slug": "forbes-diego-sierra-lawyers-special-how-to-combat-corruption-959"
+        }
+      ],
+      "localPath": "legacy-archive/html/aa48c401349e9a4c6624751f055f97840d23b4edfe95976cf7365a9c2eb6748e.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/aa48c401349e9a4c6624751f055f97840d23b4edfe95976cf7365a9c2eb6748e.html",
+      "bytes": 24423,
+      "sha256": "da5686e61a1416f1ff57fa06a93a4cada0679f4f4cf8a908f7999d3c0f8db0ce"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=961",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "ff371e2d-d478-49ab-8177-68c0ac799834",
+          "slug": "latin-lawyer-luis-burgueno-lopez-obrador-s-landslide-victory-leaves-mexican-lawyers-unfazed-961"
+        }
+      ],
+      "localPath": "legacy-archive/html/0b6d0ee03554ce39e9cbb057d4dea7b6e74cfc04a6f3a3c445f5a59f4e4fc031.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/0b6d0ee03554ce39e9cbb057d4dea7b6e74cfc04a6f3a3c445f5a59f4e4fc031.html",
+      "bytes": 24773,
+      "sha256": "8509a8173b62e541a6114fc78105084dec7bed03f617e7201d4846060fd2fa35"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=965",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "e14c64fc-d01b-4aee-9a9d-fd5f7b1455aa",
+          "slug": "the-first-general-provisions-of-the-fintech-law-will-be-published-in-september-965"
+        }
+      ],
+      "localPath": "legacy-archive/html/0a74d2cb77efc410689215131a1c246cb5f22e41a9d71a43167a45231f2fa1b6.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/0a74d2cb77efc410689215131a1c246cb5f22e41a9d71a43167a45231f2fa1b6.html",
+      "bytes": 24594,
+      "sha256": "74af8c720a747a8ab30bae9353bb652bbed47a92ff7edac5b7d625e2e416def9"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=967",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "7df8b076-733f-4be0-b9e2-7c0f041ceac6",
+          "slug": "lacca-claus-von-wobeser-lawyers-call-on-amlo-to-outline-anti-corruption-strategy-967"
+        }
+      ],
+      "localPath": "legacy-archive/html/b707545eceffa7001205cee5e2957a99f69a269479235633438d2c3052a40ffa.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/b707545eceffa7001205cee5e2957a99f69a269479235633438d2c3052a40ffa.html",
+      "bytes": 24536,
+      "sha256": "6a255f8144138ca72141fbc6460f31ab6cd779cde33f6c27357f23c13017ef8d"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=969",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "b80dbe2d-8f5d-4d7c-926f-bc94ac2bb05d",
+          "slug": "latin-lawyer-fernando-carreno-mexican-antitrust-commissioners-felt-guidelines-were-redundant-969"
+        }
+      ],
+      "localPath": "legacy-archive/html/1869f9f4b98a5010ef8e9241fb8e271955632629a6b7c25ca09f3ea43e5f6746.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/1869f9f4b98a5010ef8e9241fb8e271955632629a6b7c25ca09f3ea43e5f6746.html",
+      "bytes": 24690,
+      "sha256": "b0b9eb1650ad7f49d13f8aa698072a4318b2413f14f1049cf975174e524c0567"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=97",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "4badb46e-66d4-4734-9667-201ecd4b8f29",
+          "slug": "von-wobeser-y-sierra-recognized-in-trust-lawindex-of-pro-bono-2016-97"
+        }
+      ],
+      "localPath": "legacy-archive/html/8d1a50449a99f732122790f4cfee143683a2bc998db2bf2aaee86e836976bc25.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/8d1a50449a99f732122790f4cfee143683a2bc998db2bf2aaee86e836976bc25.html",
+      "bytes": 24850,
+      "sha256": "456bdcc51174fec9aac18068b2944ab78a65fee3b7ba994eaface2d87b410c8b"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=970",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "8e8e9cbb-98f2-45e1-b6e2-40eae900d92f",
+          "slug": "lex-latin-luis-burgueno-marisol-marquez-monex-acquires-majority-stake-in-arrendadora-avance-in-m-970"
+        }
+      ],
+      "localPath": "legacy-archive/html/627bc585efc55e931d53433fdef699d746b96317853c817899f9e2ef9db55c23.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/627bc585efc55e931d53433fdef699d746b96317853c817899f9e2ef9db55c23.html",
+      "bytes": 24451,
+      "sha256": "4f995029096725b1a748e761deb4985f4cc2beb32fd04404405324a4c36509e5"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=977",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "9d59a5c7-a13f-46e7-afcb-2f00fa63985b",
+          "slug": "secondary-rules-to-the-law-regulating-financial-technology-institutions-in-relation-to-money-lau-977"
+        }
+      ],
+      "localPath": "legacy-archive/html/5c4807447b3794bcf937a35211a307dbfa74efa98c377a42597566aeab011ed4.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/5c4807447b3794bcf937a35211a307dbfa74efa98c377a42597566aeab011ed4.html",
+      "bytes": 24570,
+      "sha256": "3263d97a2a6e43907fe25ed88302903148f620028462b012ce0257da578a1cc1"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=979",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "54fdb857-c22f-4426-85a1-005eacae99f8",
+          "slug": "la-profesora-andrea-k-bjorkland-entrevisto-a-claus-von-wobeser-979"
+        }
+      ],
+      "localPath": "legacy-archive/html/804ae0e32d65a5d328575d210c7993768bdb8f8ca836a84a617a81e68076178f.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/804ae0e32d65a5d328575d210c7993768bdb8f8ca836a84a617a81e68076178f.html",
+      "bytes": 24435,
+      "sha256": "824278335ad0b0988a272a3af3277f92c223178a680ef0668c263cec86adf4ab"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=988",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "28604613-898a-4fcd-b8b6-6c878f2855b2",
+          "slug": "el-cenagas-emite-bases-preliminares-de-licitacion-para-almacenamiento-estrategico-de-gas-natural-988"
+        }
+      ],
+      "localPath": "legacy-archive/html/3013c6b0131d082ea10e48885eaa234ad71ee9d172f00a07a51d20eba470d8b5.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/3013c6b0131d082ea10e48885eaa234ad71ee9d172f00a07a51d20eba470d8b5.html",
+      "bytes": 24619,
+      "sha256": "90516989badf0962c29a6507015b1700b2036742a18998742acaf1b8681f4288"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=99",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "b5484233-5021-487e-ab69-741e305ec185",
+          "slug": "thomson-reuters-foundation-andres-nieto-pro-bono-in-mexico-99"
+        }
+      ],
+      "localPath": "legacy-archive/html/2a55ad109c5ff14b1e848c75242faa677b88f6463aa6ca9f88686341eaab7553.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/2a55ad109c5ff14b1e848c75242faa677b88f6463aa6ca9f88686341eaab7553.html",
+      "bytes": 24139,
+      "sha256": "857255a421faaf41ee15f0384de6303f5251d9c8611abea45b33de22b526128b"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1822",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "1bbe4a2b-5b8c-4996-8005-972706a066b3",
+          "slug": "el-lavado-de-dinero-y-las-criptomonedas-primera-parte-thomson-reuters-2020"
+        }
+      ],
+      "localPath": "legacy-archive/html/7e9ef48f1fe90469efd7fa7749d5706a139e257ef999560f4e2f1a2b8497e130.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/7e9ef48f1fe90469efd7fa7749d5706a139e257ef999560f4e2f1a2b8497e130.html",
+      "bytes": 23702,
+      "sha256": "3988552548309a25c920f5be6b0131edf999828467ccf15b98c7b08b0ad44de7"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1823",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "5af0619c-2969-4c22-9da9-c71e642e5aea",
+          "slug": "el-lavado-de-dinero-y-las-criptomonedas-segunda-parte-thomson-reuters-2021"
+        }
+      ],
+      "localPath": "legacy-archive/html/9d4501c534a016b62f863a64e8d358ee494cec79e5a9ec8b009a937552d28885.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/9d4501c534a016b62f863a64e8d358ee494cec79e5a9ec8b009a937552d28885.html",
+      "bytes": 23702,
+      "sha256": "7386303ce79dfca78e0a4065c609f85cb561dad7287512703186887681a42425"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1824",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "6fb84b65-ea03-4500-83c6-2300b3e4b8c8",
+          "slug": "responsabilidad-penal-de-la-empresa-y-del-abogado-thomson-reuters-2020"
+        }
+      ],
+      "localPath": "legacy-archive/html/cae8eaf3f6b2d9ebf5ce8edca15d55e07c3e2123fd69b42cd91994219bb2a67a.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/cae8eaf3f6b2d9ebf5ce8edca15d55e07c3e2123fd69b42cd91994219bb2a67a.html",
+      "bytes": 23690,
+      "sha256": "be72eb5dd2c36df7a968e6d745c246781b1d8325610cd34af866d26007f3e516"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1827",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "c3536dab-26fe-49db-9bb4-6dda61b42364",
+          "slug": "el-tratamiento-fiscal-de-las-criptomonedas-thomson-reuters-2022"
+        }
+      ],
+      "localPath": "legacy-archive/html/5dee396d28952a5994be0b0e3bd1e75895c85f4a27312298afa997e8c3adf3ec.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/5dee396d28952a5994be0b0e3bd1e75895c85f4a27312298afa997e8c3adf3ec.html",
+      "bytes": 23676,
+      "sha256": "97742890a9c888f130b8e9fe6c2f437e94d37f9ba4c6b347c318bcaf00f22aef"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1828",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "8102ea66-237c-4b27-9c62-d1303c8e1a2e",
+          "slug": "la-tokenizacion-de-las-cosas-revista-del-ilustre-y-nacional-colegio-de-abogados-"
+        }
+      ],
+      "localPath": "legacy-archive/html/edb6eda051d370924759481731f54e951036cb47018f387de28df3b3b7290fd6.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/edb6eda051d370924759481731f54e951036cb47018f387de28df3b3b7290fd6.html",
+      "bytes": 23742,
+      "sha256": "4cabba7f1d2d4636722ca52ccd2cafb8ec751eeb3902fa2f08599cefc2b8a57b"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1830",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "9e27d552-ebf0-4064-a162-cd029acf4296",
+          "slug": "politica-criminal-contemporanea-de-la-secretaria-de-hacienda-y-credito-publico-t"
+        }
+      ],
+      "localPath": "legacy-archive/html/7f3df4d8afaa8e67f52f6547b38b70805c909cf7340b897e755d489c918ecb82.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/7f3df4d8afaa8e67f52f6547b38b70805c909cf7340b897e755d489c918ecb82.html",
+      "bytes": 23758,
+      "sha256": "16640a4f36ac91ec6c021c92615aa27b45e0ed8aeaec10a68c8a2fc8af275844"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1831",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "5c2705c0-34c6-4989-8d05-da918872008a",
+          "slug": "prescripcion-penal-fiscal-thomson-reuters-2015"
+        }
+      ],
+      "localPath": "legacy-archive/html/4f243f28738cd0115d5b1d0f1105c70c18a2a81e415424e50620c30c21e0c90d.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/4f243f28738cd0115d5b1d0f1105c70c18a2a81e415424e50620c30c21e0c90d.html",
+      "bytes": 23644,
+      "sha256": "ba142183e6322342a21561d3fb623640ba0fecfbd7ae574319e5407c08540c97"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1832",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "7f630609-6ae8-484d-8fdc-841dd7f45859",
+          "slug": "comentarios-sobre-el-delito-de-defraudacion-fiscal-equiparada-relacionada-con-el"
+        }
+      ],
+      "localPath": "legacy-archive/html/94fca8908b18653cc56f741fb7d0a98b77d944b3eaba01c68882ef76780a74de.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/94fca8908b18653cc56f741fb7d0a98b77d944b3eaba01c68882ef76780a74de.html",
+      "bytes": 23884,
+      "sha256": "a5eec71a19c63acb91154a0c4fe50b5778e86ae48332aff7dc8e2d65c659c0b9"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1966",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "ba575748-0d94-400a-aa84-3352a5befb68",
+          "slug": "tax-implications-of-recent-sat-invitations-on-subcontracting-and-repse-1966"
+        }
+      ],
+      "localPath": "legacy-archive/html/6c40cbb225d0bab5bdcc202c685a7367ad211fa60882f0c00f14bd3130fea217.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/6c40cbb225d0bab5bdcc202c685a7367ad211fa60882f0c00f14bd3130fea217.html",
+      "bytes": 33310,
+      "sha256": "cd2192710cbebadbf9ca6babc951903ecd1136759ad10f56fac38f3a9e3cede9"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1970",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "97c59e33-0043-49f6-87d8-2ca5fad7d84f",
+          "slug": "criterio-emitido-por-el-instituto-del"
+        }
+      ],
+      "localPath": "legacy-archive/html/f2fa15562ce114dbb4b9ae08fd2f78326ec05f17bc2d3e7596afd43b14a5ca3d.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/f2fa15562ce114dbb4b9ae08fd2f78326ec05f17bc2d3e7596afd43b14a5ca3d.html",
+      "bytes": 26565,
+      "sha256": "8dd7f481025727bd8f8fa6e81598067a43851b77456ce1a5e60629011af9581c"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1986",
+      "kind": "html",
+      "consumers": [
+        {
+          "table": "news",
+          "id": "eb225870-9313-4f31-9184-d349dd4ac349",
+          "slug": "regulatory-updates-in-the-hydrocarbons-sector-1986"
+        }
+      ],
+      "localPath": "legacy-archive/html/e74661713f874a8b24eacbe5f7e8f899bd4ca18d6d196b083579a6160c033df2.html",
+      "objectName": "von-wobeser/private/legacy-archive/pages/e74661713f874a8b24eacbe5f7e8f899bd4ca18d6d196b083579a6160c033df2.html",
+      "bytes": 36160,
+      "sha256": "f99c1e8ecd08c91e54c323d6a86670b2de7a22c7ae01725df38e9b3cf4c13587"
+    }
+  ],
+  "routeMappings": [
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=101",
+      "legacyId": "101",
+      "language": "es",
+      "destination": "/news/andres-nieto-global-pound-conference-shaping-the-future-of-dispute-resolution-and-improving-acce-101"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1010",
+      "legacyId": "1010",
+      "language": "es",
+      "destination": "/news/evento-planning-past-unconscious-bias-the-arbitralwomen-diversity-toolkit-1010"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=103",
+      "legacyId": "103",
+      "language": "es",
+      "destination": "/news/adrian-magallanes-global-pound-conference-shaping-the-future-of-dispute-resolution-and-improving-103"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=105",
+      "legacyId": "105",
+      "language": "es",
+      "destination": "/news/von-wobeser-y-sierra-participates-in-latinamerica-corruption-survey-2016-105"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1059",
+      "legacyId": "1059",
+      "language": "es",
+      "destination": "/news/global-competition-review-fernando-carreno-compania-de-informacion-crediticia-multada-por-negars-1059"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1062",
+      "legacyId": "1062",
+      "language": "es",
+      "destination": "/news/circulares-emitidas-por-el-banco-de-mexico-en-materia-de-mitigacion-de-riesgos-operaciones-con-a-1062"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=107",
+      "legacyId": "107",
+      "language": "es",
+      "destination": "/news/the-national-hydrocarbons-commission-issued-the-call-and-the-rules-for-the-first-bidding-of-roun-107"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=109",
+      "legacyId": "109",
+      "language": "es",
+      "destination": "/news/communication-regarding-mexican-data-privacy-protection-109"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1095",
+      "legacyId": "1095",
+      "language": "es",
+      "destination": "/news/latin-lawyer-entendiendo-al-peje-lo-que-los-abogados-esperan-de-la-presidencia-de-amlo-1095"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1096",
+      "legacyId": "1096",
+      "language": "es",
+      "destination": "/news/reform-in-relation-to-the-granting-of-leave-for-parents-whose-children-have-been-diagnosed-with-1096"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1098",
+      "legacyId": "1098",
+      "language": "es",
+      "destination": "/news/reform-of-the-federal-labor-and-social-security-laws-in-relation-to-domestic-workers-1098"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1100",
+      "legacyId": "1100",
+      "language": "es",
+      "destination": "/news/general-transparency-and-healthy-practices-provisions-issued-by-the-condusef-applicable-to-the-f-1100"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=111",
+      "legacyId": "111",
+      "language": "es",
+      "destination": "/news/mexico-s-new-anti-corruption-paradigm-111"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=113",
+      "legacyId": "113",
+      "language": "es",
+      "destination": "/news/mexican-congress-issues-secondary-anticorruption-regulations-113"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=115",
+      "legacyId": "115",
+      "language": "es",
+      "destination": "/news/latin-lawyer-panama-papers-leak-sparks-mexican-investigation-fernando-carreno-115"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=117",
+      "legacyId": "117",
+      "language": "es",
+      "destination": "/news/global-competition-review-gcr-panama-papers-leak-sparks-mexican-investigation-fernando-carreno-117"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=119",
+      "legacyId": "119",
+      "language": "es",
+      "destination": "/news/latin-lawyer-mexico-passes-crazy-transparency-law-adrian-magallanes-119"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1196",
+      "legacyId": "1196",
+      "language": "es",
+      "destination": "/news/santander-desarrolla-una-estrategia-de-pagos-en-mexico-1196"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1197",
+      "legacyId": "1197",
+      "language": "es",
+      "destination": "/news/ab-inbev-reitera-su-apuesta-por-la-energia-renovable-en-mexico-1197"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1205",
+      "legacyId": "1205",
+      "language": "es",
+      "destination": "/news/actualizacion-suspension-de-terminos-y-plazos-de-la-comision-reguladora-de-energia-1205"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=121",
+      "legacyId": "121",
+      "language": "es",
+      "destination": "/news/global-investigations-review-gir-mexico-passes-crazy-transparency-law-adrian-magallanes-121"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1250",
+      "legacyId": "1250",
+      "language": "es",
+      "destination": "/news/el-cjf-considera-asunto-urgente-a-las-medidas-cautelares-en-concursos-mercantiles-1250"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1265",
+      "legacyId": "1265",
+      "language": "es",
+      "destination": "/news/cenace-suspende-pruebas-preoperativas-e-impone-limites-a-la-transmision-de-centrales-electricas-1265"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1807",
+      "legacyId": "1807",
+      "language": "es",
+      "destination": "/news/el-lavado-de-dinero-y-las-criptomonedas-primera-parte-thomson-reuters-2020-2"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1808",
+      "legacyId": "1808",
+      "language": "es",
+      "destination": "/news/el-lavado-de-dinero-y-las-criptomonedas-segunda-parte-thomson-reuters-2021-2"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1809",
+      "legacyId": "1809",
+      "language": "es",
+      "destination": "/news/responsabilidad-penal-de-la-empresa-y-del-abogado-thomson-reuters-2020-2"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1812",
+      "legacyId": "1812",
+      "language": "es",
+      "destination": "/news/el-tratamiento-fiscal-de-las-criptomonedas-thomson-reuters-2022-2"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1813",
+      "legacyId": "1813",
+      "language": "es",
+      "destination": "/news/la-tokenizacion-de-las-cosas-revista-del-ilustre-y-nacional-colegio-de-abogados--2"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1815",
+      "legacyId": "1815",
+      "language": "es",
+      "destination": "/news/politica-criminal-contemporanea-de-la-secretaria-de-hacienda-y-credito-publico-t-2"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1816",
+      "legacyId": "1816",
+      "language": "es",
+      "destination": "/news/prescripcion-penal-fiscal-thomson-reuters-2015-2"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1817",
+      "legacyId": "1817",
+      "language": "es",
+      "destination": "/news/comentarios-sobre-el-delito-de-defraudacion-fiscal-equiparada-relacionada-con-el-2"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1911",
+      "legacyId": "1911",
+      "language": "es",
+      "destination": "/news/propuesta-de-reforma-a-la-lfpiorpi-y"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1927",
+      "legacyId": "1927",
+      "language": "es",
+      "destination": "/news/nuevos-salarios-minimos-a-partir-del-1"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1930",
+      "legacyId": "1930",
+      "language": "es",
+      "destination": "/news/mexico-expresa-a-la-onu-posicion"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1933",
+      "legacyId": "1933",
+      "language": "es",
+      "destination": "/news/nuevos-valores-de-la-uma-vigentes-a"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1935",
+      "legacyId": "1935",
+      "language": "es",
+      "destination": "/news/propuesta-de-servicios-legales-y-de"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1937",
+      "legacyId": "1937",
+      "language": "es",
+      "destination": "/news/reforma-laboral-en-materia-de-trabajo"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1939",
+      "legacyId": "1939",
+      "language": "es",
+      "destination": "/news/flexibilizacion-de-la-prohibicion-de"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1953",
+      "legacyId": "1953",
+      "language": "es",
+      "destination": "/news/publicacion-de-criterio-sobre"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1957",
+      "legacyId": "1957",
+      "language": "es",
+      "destination": "/news/nuevas-leyes-secundarias-modifican-el"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1960",
+      "legacyId": "1960",
+      "language": "es",
+      "destination": "/news/tax-incentives-granted-to-taxpayers-operating-within-the-economic-development-hubs-for-well-bein-1960"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1963",
+      "legacyId": "1963",
+      "language": "es",
+      "destination": "/news/entran-en-vigor-disposiciones-para-la"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1965",
+      "legacyId": "1965",
+      "language": "es",
+      "destination": "/news/implicaciones-fiscales-de-las-recientes"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1967",
+      "legacyId": "1967",
+      "language": "es",
+      "destination": "/news/nuevas-leyes-secundarias-para-el-sector"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1971",
+      "legacyId": "1971",
+      "language": "es",
+      "destination": "/news/nuevas-leyes-en-materia-de"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1973",
+      "legacyId": "1973",
+      "language": "es",
+      "destination": "/news/nueva-declaracion-informativa-sobre"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1975",
+      "legacyId": "1975",
+      "language": "es",
+      "destination": "/news/se-publica-iniciativa-de-reforma-a-la-ley"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1977",
+      "legacyId": "1977",
+      "language": "es",
+      "destination": "/news/simplificacion-y-mejora-regulatoria-de"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1983",
+      "legacyId": "1983",
+      "language": "es",
+      "destination": "/news/ley-silla-disposiciones-sobre-los-factores-de"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=1985",
+      "legacyId": "1985",
+      "language": "es",
+      "destination": "/news/actualizaciones-regulatorias-en-el-sector-de"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=23",
+      "legacyId": "23",
+      "language": "es",
+      "destination": "/news/latin-lawyer-mexico-pursues-first-criminal-action-against-cartelists-fernando-carreno-23"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=25",
+      "legacyId": "25",
+      "language": "es",
+      "destination": "/news/global-competition-review-gcr-mexico-pursues-first-criminal-action-against-cartelists-fernando-c-25"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=27",
+      "legacyId": "27",
+      "language": "es",
+      "destination": "/news/constitutional-labor-reform-27"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=274",
+      "legacyId": "274",
+      "language": "es",
+      "destination": "/news/new-minimum-wage-as-of-january-1st-2016-274"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=29",
+      "legacyId": "29",
+      "language": "es",
+      "destination": "/news/montserrat-manzano-yai-talks-miami-conquering-new-grounds-the-finance-and-banking-industry-29"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=31",
+      "legacyId": "31",
+      "language": "es",
+      "destination": "/news/client-communication-personal-data-protection-in-mexico-31"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=33",
+      "legacyId": "33",
+      "language": "es",
+      "destination": "/news/principal-changes-to-tax-provisions-for-2017-33"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=37",
+      "legacyId": "37",
+      "language": "es",
+      "destination": "/news/latin-lawyer-andres-nieto-rodolfo-trampe-edmond-grieger-y-alberto-cordoba-prince-international-a-37"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=39",
+      "legacyId": "39",
+      "language": "es",
+      "destination": "/news/latin-lawyer-fernando-carreno-post-closing-tax-liabilities-among-the-gratest-challenges-for-m-a-39"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=41",
+      "legacyId": "41",
+      "language": "es",
+      "destination": "/news/who-s-who-legal-recognizes-partners-lawyers-at-von-wobeser-y-sierra-41"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=43",
+      "legacyId": "43",
+      "language": "es",
+      "destination": "/news/who-s-who-legal-recognizes-partners-associates-of-von-wobeser-y-sierra-in-who-s-who-legal-mexico-43"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=439",
+      "legacyId": "439",
+      "language": "es",
+      "destination": "/news/von-wobeser-y-sierra-recognized-by-gcr-100-as-one-of-the-best-100-firms-in-competition-in-the-wo-439"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=45",
+      "legacyId": "45",
+      "language": "es",
+      "destination": "/news/icc-international-chamber-of-commerce-icc-mexico-mediation-committee-alexandra-von-wobeser-45"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=47",
+      "legacyId": "47",
+      "language": "es",
+      "destination": "/news/energy-regulatory-commission-sets-forth-requirements-and-grants-a-time-extension-to-execute-inte-47"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=49",
+      "legacyId": "49",
+      "language": "es",
+      "destination": "/news/leader-league-business-and-leadership-institute-for-transnational-arbitration-ita-montserrat-man-49"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=51",
+      "legacyId": "51",
+      "language": "es",
+      "destination": "/news/latin-lawyer-leading-lights-von-wobeser-y-sierra-s-c-latin-american-pro-bono-leader-51"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=53",
+      "legacyId": "53",
+      "language": "es",
+      "destination": "/news/who-s-who-legal-recognizes-future-leaders-2017-these-are-partners-and-non-partners-aged-45-or-un-53"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=57",
+      "legacyId": "57",
+      "language": "es",
+      "destination": "/news/pena-nieto-proposes-that-head-of-the-attorney-general-s-office-be-appointed-by-senate-57"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=61",
+      "legacyId": "61",
+      "language": "es",
+      "destination": "/news/potential-withdrawal-from-the-north-american-free-trade-agreement-61"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=63",
+      "legacyId": "63",
+      "language": "es",
+      "destination": "/news/iba-judicial-integrity-initiative-judicial-anti-corruption-compact-63"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=65",
+      "legacyId": "65",
+      "language": "es",
+      "destination": "/news/von-wobeser-y-sierra-s-attorneys-sign-the-iba-anticorruption-compact-65"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=67",
+      "legacyId": "67",
+      "language": "es",
+      "destination": "/news/luis-burgueno-gloria-martinez-alberto-cordoba-jorge-diaz-y-marisol-marquez-lexlatin-san-benedett-67"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=69",
+      "legacyId": "69",
+      "language": "es",
+      "destination": "/news/arbitral-women-in-latin-america-mexico-city-69"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=71",
+      "legacyId": "71",
+      "language": "es",
+      "destination": "/news/cenace-announces-the-winners-of-the-second-long-term-auction-for-energy-cels-and-capacity-71"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=73",
+      "legacyId": "73",
+      "language": "es",
+      "destination": "/news/global-investigations-review-gir-100-diego-sierra-the-world-s-leading-investigations-practices-r-73"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=75",
+      "legacyId": "75",
+      "language": "es",
+      "destination": "/news/latin-lawyer-fernando-carreno-antitrust-probe-targets-cancun-airport-75"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=77",
+      "legacyId": "77",
+      "language": "es",
+      "destination": "/news/latin-lawyer-luis-burgueno-rupert-huttler-alberto-cordoba-von-wobeser-allen-overy-steer-auto-iss-77"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=79",
+      "legacyId": "79",
+      "language": "es",
+      "destination": "/news/lex-latin-luis-burgueno-edmond-grieger-rodolfo-trampe-alberto-cordoba-marisol-marquez-von-wobese-79"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=81",
+      "legacyId": "81",
+      "language": "es",
+      "destination": "/news/latin-lawyer-luis-burgueno-edmond-grieger-rodolfo-trampe-alberto-cordoba-y-marisol-marquez-bain-81"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=83",
+      "legacyId": "83",
+      "language": "es",
+      "destination": "/news/fernando-carreno-gcr-global-competition-review-mexico-s-competition-bar-83"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=85",
+      "legacyId": "85",
+      "language": "es",
+      "destination": "/news/von-wobeser-y-sierra-s-c-is-recognized-as-elite-firm-in-global-competition-review-85"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=87",
+      "legacyId": "87",
+      "language": "es",
+      "destination": "/news/global-competition-review-gcr-fernando-carreno-mexican-enforcer-urges-freight-industry-deregulat-87"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=89",
+      "legacyId": "89",
+      "language": "es",
+      "destination": "/news/von-wobeser-y-sierra-s-c-invites-you-to-the-mexico-city-global-pound-conference-89"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=91",
+      "legacyId": "91",
+      "language": "es",
+      "destination": "/news/gcr-global-competition-review-turf-wars-the-threat-of-stand-offs-between-mexico-s-competition-en-91"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=951",
+      "legacyId": "951",
+      "language": "es",
+      "destination": "/news/amendment-requires-publication-of-partners-and-shareholders-of-limited-liability-companies-and-s-951"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=957",
+      "legacyId": "957",
+      "language": "es",
+      "destination": "/news/amendments-to-the-customs-law-and-creation-of-the-customs-agency-957"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=959",
+      "legacyId": "959",
+      "language": "es",
+      "destination": "/news/forbes-diego-sierra-lawyers-special-how-to-combat-corruption-959"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=961",
+      "legacyId": "961",
+      "language": "es",
+      "destination": "/news/latin-lawyer-luis-burgueno-lopez-obrador-s-landslide-victory-leaves-mexican-lawyers-unfazed-961"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=965",
+      "legacyId": "965",
+      "language": "es",
+      "destination": "/news/the-first-general-provisions-of-the-fintech-law-will-be-published-in-september-965"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=967",
+      "legacyId": "967",
+      "language": "es",
+      "destination": "/news/lacca-claus-von-wobeser-lawyers-call-on-amlo-to-outline-anti-corruption-strategy-967"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=969",
+      "legacyId": "969",
+      "language": "es",
+      "destination": "/news/latin-lawyer-fernando-carreno-mexican-antitrust-commissioners-felt-guidelines-were-redundant-969"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=97",
+      "legacyId": "97",
+      "language": "es",
+      "destination": "/news/von-wobeser-y-sierra-recognized-in-trust-lawindex-of-pro-bono-2016-97"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=970",
+      "legacyId": "970",
+      "language": "es",
+      "destination": "/news/lex-latin-luis-burgueno-marisol-marquez-monex-acquires-majority-stake-in-arrendadora-avance-in-m-970"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=977",
+      "legacyId": "977",
+      "language": "es",
+      "destination": "/news/secondary-rules-to-the-law-regulating-financial-technology-institutions-in-relation-to-money-lau-977"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=979",
+      "legacyId": "979",
+      "language": "es",
+      "destination": "/news/la-profesora-andrea-k-bjorkland-entrevisto-a-claus-von-wobeser-979"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=988",
+      "legacyId": "988",
+      "language": "es",
+      "destination": "/news/el-cenagas-emite-bases-preliminares-de-licitacion-para-almacenamiento-estrategico-de-gas-natural-988"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publicacion?p_id=99",
+      "legacyId": "99",
+      "language": "es",
+      "destination": "/news/thomson-reuters-foundation-andres-nieto-pro-bono-in-mexico-99"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1822",
+      "legacyId": "1822",
+      "language": "en",
+      "destination": "/news/el-lavado-de-dinero-y-las-criptomonedas-primera-parte-thomson-reuters-2020?lang=en"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1823",
+      "legacyId": "1823",
+      "language": "en",
+      "destination": "/news/el-lavado-de-dinero-y-las-criptomonedas-segunda-parte-thomson-reuters-2021?lang=en"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1824",
+      "legacyId": "1824",
+      "language": "en",
+      "destination": "/news/responsabilidad-penal-de-la-empresa-y-del-abogado-thomson-reuters-2020?lang=en"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1827",
+      "legacyId": "1827",
+      "language": "en",
+      "destination": "/news/el-tratamiento-fiscal-de-las-criptomonedas-thomson-reuters-2022?lang=en"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1828",
+      "legacyId": "1828",
+      "language": "en",
+      "destination": "/news/la-tokenizacion-de-las-cosas-revista-del-ilustre-y-nacional-colegio-de-abogados-?lang=en"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1830",
+      "legacyId": "1830",
+      "language": "en",
+      "destination": "/news/politica-criminal-contemporanea-de-la-secretaria-de-hacienda-y-credito-publico-t?lang=en"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1831",
+      "legacyId": "1831",
+      "language": "en",
+      "destination": "/news/prescripcion-penal-fiscal-thomson-reuters-2015?lang=en"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1832",
+      "legacyId": "1832",
+      "language": "en",
+      "destination": "/news/comentarios-sobre-el-delito-de-defraudacion-fiscal-equiparada-relacionada-con-el?lang=en"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1966",
+      "legacyId": "1966",
+      "language": "en",
+      "destination": "/news/tax-implications-of-recent-sat-invitations-on-subcontracting-and-repse-1966?lang=en"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1970",
+      "legacyId": "1970",
+      "language": "en",
+      "destination": "/news/criterio-emitido-por-el-instituto-del?lang=en"
+    },
+    {
+      "originalUrl": "https://www.vonwobeser.com/index.php/publication?p_id=1986",
+      "legacyId": "1986",
+      "language": "en",
+      "destination": "/news/regulatory-updates-in-the-hydrocarbons-sector-1986?lang=en"
+    }
+  ]
+}

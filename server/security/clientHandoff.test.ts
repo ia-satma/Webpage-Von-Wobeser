@@ -59,6 +59,7 @@ test("el repositorio no versiona paquetes de entrega ni IDs de bucket", async ()
   assert.doesNotMatch(replit, /defaultBucketID|replit-objstore-/);
   assert.match(packageJson, /handoff:storage/);
   assert.match(packageJson, /handoff:private/);
+  assert.match(packageJson, /handoff:legacy-archive/);
   assert.match(packageJson, /handoff:status/);
   assert.match(packageJson, /handoff:install/);
   assert.match(packageJson, /start:workspace/);
@@ -77,6 +78,7 @@ test("la entrega por GitHub está documentada sin copiar Secrets ni DATABASE_URL
   assert.match(guide, /backup-current/);
   assert.match(guide, /OPENAI_API_KEY/);
   assert.match(guide, /von-wobeser\/private\/cvs/);
+  assert.match(guide, /von-wobeser\/private\/legacy-archive/);
   assert.match(guide, /handoff:readiness/);
   assert.match(guide, /handoff:install/);
   assert.match(guide, /ready_to_restore/);
@@ -100,6 +102,8 @@ test("la auditoría de entrega exige datos y medios sin imprimir información pe
   assert.match(source, /legacyPlaintextUsersTablePresent/);
   assert.match(source, /mfaEncryptionKeyConfigured/);
   assert.match(source, /privilegedMfaRequired/);
+  assert.match(source, /legacyArchivePages < 108/);
+  assert.match(source, /legacyArchiveManifestMatchesDatabase/);
   assert.match(source, /select exists\(select 1 from admin_users where lower\(email\)/i);
   assert.doesNotMatch(source, /select\s+(?:first_name|last_name|cv_original_name)/i);
 });
@@ -182,6 +186,7 @@ test("la detección exige un paquete completo, pero no lee Secrets", async () =>
     await fs.mkdir(path.join(directory, "database"));
     await fs.mkdir(path.join(directory, "app-storage"));
     await fs.mkdir(path.join(directory, "private-documents"));
+    await fs.mkdir(path.join(directory, "legacy-archive"));
     await fs.writeFile(path.join(directory, "database", "snapshot.dump.enc"), Buffer.concat([
       Buffer.from("VWBDB001", "ascii"), Buffer.alloc(48),
     ]));
@@ -190,9 +195,12 @@ test("la detección exige un paquete completo, pero no lee Secrets", async () =>
     await fs.writeFile(path.join(directory, "app-storage", "app-storage-manifest.sha256"), `${crypto.createHash("sha256").update(manifest).digest("hex")}\n`);
     await fs.writeFile(path.join(directory, "private-documents", "private-documents-manifest.enc"), "placeholder");
     await fs.writeFile(path.join(directory, "private-documents", "private-documents-manifest.sha256"), "a".repeat(64));
+    await fs.writeFile(path.join(directory, "legacy-archive", "legacy-archive-manifest.enc"), "placeholder");
+    await fs.writeFile(path.join(directory, "legacy-archive", "legacy-archive-manifest.sha256"), "a".repeat(64));
     const inspected = await inspectPackage(directory);
     assert.equal(inspected.complete, true);
     assert.equal(inspected.state, "complete");
+    assert.equal(inspected.legacyArchive, true);
   } finally {
     await fs.rm(directory, { recursive: true, force: true });
   }

@@ -33,6 +33,7 @@ import { renderOfficeShowcase } from "./renderOfficeShowcase";
 import { applyDiversityVideoGallery } from "./diversityVideoGallery";
 import { getCachedPublicPage } from "./pageCache";
 import { listPersistentPublicMediaPaths } from "../media/persistentMedia";
+import { assertLegacyPublicationArchiveReady } from "../media/legacyPublicationArchive";
 import { seedCookiePolicy } from "../privacy/cookieConsent";
 import {
   isPublicPracticeSlug,
@@ -345,6 +346,10 @@ export async function createMirrorRuntime() {
   } catch (e) {
     console.warn("[mirror] No se pudo sembrar siteConfig:", (e as Error).message);
   }
+  // La migración deja una marca en Database únicamente después de comprobar
+  // los hashes locales y de App Storage. En producción no arrancamos con PDFs
+  // migrados a medias ni con un fallback al sitio Joomla retirado.
+  await assertLegacyPublicationArchiveReady(await getConfigMap());
   let ids: IdMaps = { attorney: new Map(), practice: new Map(), industry: new Map() };
   try {
     ids = await buildIdMaps();

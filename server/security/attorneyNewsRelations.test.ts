@@ -392,17 +392,22 @@ test("un vínculo interno a la página anterior conserva su texto pero nunca que
   assert.match($("body").text(), /publicación histórica/);
 });
 
-test("la curación cubre exactamente los 55 Artículos deficientes con fuente HTTPS", () => {
+test("la curación cubre exactamente los 55 Artículos deficientes sin recrear URLs Joomla", () => {
   assert.equal(ARTICLE_SUMMARY_CURATION_20260826.length, 55);
   assert.equal(new Set(ARTICLE_SUMMARY_CURATION_20260826.map((entry) => entry.slug)).size, 55);
   assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => entry.excerpt && entry.excerptEs).length, 37);
   assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => !entry.excerpt && !entry.excerptEs).length, 18);
-  assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => entry.replaceableSourceUrls?.length).length, 6);
-  const legacyOfficialRoutes = ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => /vonwobeser\.com\/index\.php\/(?:publication|publicacion)\?p_id=\d+$/.test(entry.sourceUrl));
-  assert.equal(legacyOfficialRoutes.length, 16);
+  assert.equal(ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => entry.replaceableSourceUrls?.length).length, 2);
+  const archivedLegacySourceOnly = ARTICLE_SUMMARY_CURATION_20260826.filter((entry) => entry.sourceUrl === null);
+  assert.equal(archivedLegacySourceOnly.length, 16);
   for (const entry of ARTICLE_SUMMARY_CURATION_20260826) {
-    assert.match(entry.sourceUrl, /^https:\/\//);
-    assert.doesNotMatch(entry.sourceUrl, /\/p_id-\d+\.html$/);
+    if (entry.sourceUrl === null) {
+      assert.equal(entry.excerpt, "");
+      assert.equal(entry.excerptEs, "");
+      continue;
+    }
+    assert.match(entry.sourceUrl, /^(?:https:\/\/|\/uploads\/legacy-publications\/)/);
+    assert.doesNotMatch(entry.sourceUrl, /vonwobeser\.com\/index\.php/);
     for (const replaceableSourceUrl of entry.replaceableSourceUrls ?? []) {
       assert.match(replaceableSourceUrl, /^https:\/\//);
       assert.notEqual(replaceableSourceUrl, entry.sourceUrl);

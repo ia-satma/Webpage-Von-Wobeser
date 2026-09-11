@@ -33,9 +33,10 @@ GitHub contiene el código y los recursos versionados, pero **no** transporta:
 - Archivos de Replit App Storage.
 - Historial operativo administrado fuera del repositorio.
 
-Por ello, la entrega completa consta de cuatro piezas: repositorio, respaldo cifrado de
-PostgreSQL, paquete verificado de medios públicos de App Storage y paquete cifrado de
-documentos privados.
+Por ello, la entrega completa consta de cinco piezas: repositorio, respaldo cifrado de
+PostgreSQL, paquete verificado de medios públicos de App Storage, paquete cifrado de
+documentos privados y archivo histórico privado cifrado. El último conserva las 108
+fichas HTML del sistema retirado sin exponer una segunda web ni duplicar SEO.
 
 > A diferencia de proyectos cuyo contenido inicial puede reconstruirse desde un
 > manifiesto versionado, Von Wobeser ya contiene contenido editorial, usuarios,
@@ -68,6 +69,21 @@ del agente, comandos, Git ni capturas.
 
 No guardar el paquete dentro de Git. La carpeta `.handoff/` está excluida mediante
 `.gitignore`.
+
+### 1.0 Confirmar la migración del sitio retirado en la cuenta de origen
+
+Con App Storage de la cuenta de origen vinculado, ejecutar una única vez:
+
+```bash
+CONFIRM_LEGACY_PLATFORM_MIGRATION=1 \
+  npm run content:migrate-legacy-platform -- --publish
+```
+
+El comando vuelve a comprobar el manifiesto local, carga y lee de vuelta los nueve
+PDFs públicos y 108 HTML privados, y sólo después reemplaza las referencias Joomla en
+Database. Si falla una descarga, hash, carga, lectura o mapeo, revierte el lote remoto
+que acababa de crear y no cambia la Database. En producción el arranque exige los PDFs
+verificados en App Storage; no existe fallback al dominio o a la página anterior.
 
 ### 1.1 Respaldo de la base productiva vigente
 
@@ -126,6 +142,21 @@ archivo y su manifiesto se cifran con AES-256-GCM usando
 `DB_BACKUP_ENCRYPTION_KEY`; los nombres físicos son aleatorios y no contienen datos
 personales. La clave debe entregarse por un canal distinto y el paquete nunca debe
 subirse a GitHub.
+
+### 1.4 Exportar el archivo histórico privado
+
+Antes de generar los paquetes, la migración debe haber confirmado el archivo local,
+las copias de App Storage y el manifiesto `legacy-archive/manifest.json`. Este archivo
+incluye URL de procedencia, consumidor, ruta local, objeto y SHA-256 para los nueve PDFs
+públicos y las 108 fichas HTML privadas.
+
+```bash
+npm run handoff:legacy-archive -- export --directory="$PWD/.handoff/legacy-archive"
+```
+
+El paquete cifra cada objeto y el manifiesto con AES-256-GCM. Incluye únicamente
+`von-wobeser/private/legacy-archive/`; no se sirve por rutas públicas, no se sube a Git
+y usa la misma clave de cifrado entregada por canal separado.
 
 ## 2. Crear la instalación del cliente
 
@@ -222,8 +253,9 @@ El comando valida que la Database no contiene tablas de aplicación y, en este o
 2. aplica las migraciones versionadas vigentes;
 3. importa y verifica los medios públicos;
 4. importa y verifica los documentos privados cifrados;
-5. crea el Dueño del cliente solo si ese correo aún no existe, sin modificar las demás cuentas;
-6. ejecuta la auditoría final de conteos, medios, CV y Dueño.
+5. importa y verifica el archivo histórico privado cifrado;
+6. crea el Dueño del cliente solo si ese correo aún no existe, sin modificar las demás cuentas;
+7. ejecuta la auditoría final de conteos, medios, CV, archivo histórico y Dueño.
 
 Si la Database tiene información parcial o existente, el instalador se detiene antes de
 escribir. Esto evita una sobrescritura accidental y requiere una revisión explícita.

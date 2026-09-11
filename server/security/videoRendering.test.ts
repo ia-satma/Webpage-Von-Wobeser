@@ -125,7 +125,7 @@ test("Diversidad alterna de forma segura entre archivo, YouTube y Vimeo", () => 
   assert.doesNotMatch($.html(), /<iframe[^>]+(?:evil|javascript:)/i);
 });
 
-test("Diversidad nunca reutiliza videos de Nuevas oficinas y oculta una galería sin videos propios", () => {
+test("Diversidad filtra videos de Nuevas oficinas sin ocultar su carrusel", () => {
   const $ = cheerio.load(`<!doctype html><html><body>
     <div class="slide_vid"><video id="videoPlayer"><source id="videoSource"></video></div>
     <div class="slide_videos_thumbs">
@@ -139,6 +139,7 @@ test("Diversidad nunca reutiliza videos de Nuevas oficinas y oculta una galería
     page_diversity_video_main: entry("/images/vw_vid_02.mp4"),
     page_diversity_video_1: entry("/img/videos/video1.mp4"),
     page_diversity_video_4: entry("/img/videos/video4.mp4"),
+    page_diversity_video_7: entry("/images/vid_07.mp4"),
     page_diversity_thumb_main: entry("/images/diversity-thumbnails/main.jpg"),
     page_diversity_thumb_1: entry("/images/diversity-thumbnails/video-1.jpg"),
     page_diversity_thumb_4: entry("/images/diversity-thumbnails/video-4.jpg"),
@@ -146,12 +147,16 @@ test("Diversidad nunca reutiliza videos de Nuevas oficinas y oculta una galería
 
   applyDiversityVideoGallery($, config, "es");
 
-  assert.equal($(".slide_videos_thumbs").length, 0);
+  assert.equal($(".slide_videos_thumbs").length, 1);
+  assert.equal($(".thumb[name='vw_vid_02']").length, 1);
+  assert.equal($(".thumb[name='vid_07']").attr("data-video"), "/images/vid_07.mp4");
+  assert.equal($(".thumb[name='vid_01'], .thumb[name='vid_04']").length, 0);
   assert.doesNotMatch($.html(), /\/img\/videos\/video[1-6]\.mp4/);
+  assert.doesNotMatch($.html(), /vonwobeser\.com/i);
 });
 
-test("Diversidad conserva los siete fotogramas generados a partir de sus videos", () => {
-  const thumbnails = ["main", ...Array.from({ length: 6 }, (_, index) => `video-${index + 1}`)];
+test("Diversidad conserva los ocho fotogramas generados a partir de sus videos", () => {
+  const thumbnails = ["main", ...Array.from({ length: 7 }, (_, index) => `video-${index + 1}`)];
   for (const thumbnail of thumbnails) {
     const asset = path.resolve(
       import.meta.dirname,
@@ -160,6 +165,14 @@ test("Diversidad conserva los siete fotogramas generados a partir de sus videos"
     const bytes = fs.readFileSync(asset);
     assert.deepEqual([...bytes.subarray(0, 3)], [0xff, 0xd8, 0xff], `${thumbnail} debe ser un JPEG válido`);
     assert.ok(bytes.length > 10_000, `${thumbnail} no debe ser un marcador diminuto`);
+  }
+});
+
+test("los siete videos secundarios de Diversidad se incluyen en el espejo local", () => {
+  for (const number of ["01", "02", "03", "04", "05", "06", "07"]) {
+    const asset = path.resolve(import.meta.dirname, `../../frontend-mirror/images/vid_${number}.mp4`);
+    assert.ok(fs.existsSync(asset), `vid_${number} debe existir localmente`);
+    assert.ok(fs.statSync(asset).size > 10_000_000, `vid_${number} no debe ser un archivo incompleto`);
   }
 });
 

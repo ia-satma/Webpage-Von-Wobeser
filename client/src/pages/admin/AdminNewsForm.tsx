@@ -302,7 +302,7 @@ export default function AdminNewsForm() {
 
   const spanishReady = hasReadableText(form.titleEs) && hasReadableText(form.excerptEs);
   const englishReady = hasReadableText(form.title) && hasReadableText(form.excerpt);
-  const sourceOnlyArticle = form.category === "articles" && /^https:\/\//i.test(form.sourceUrl.trim());
+  const sourceOnlyArticle = form.category === "articles" && (/^https:\/\//i.test(form.sourceUrl.trim()) || /^\/uploads\/legacy-publications\/[a-z0-9-]+\.pdf$/i.test(form.sourceUrl.trim()));
   const editingPublishedLegacyWithoutDate = isEdit && newsQuery.data?.published === true && !newsQuery.data?.date;
   const dateReady = !form.published || hasReadableText(form.date) || editingPublishedLegacyWithoutDate;
   const selectedProfessionalIds = Object.keys(professionalRoles);
@@ -480,8 +480,8 @@ export default function AdminNewsForm() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="sourceUrl">Fuente original <span className="text-muted-foreground text-xs">— opcional</span></Label>
-                <Input id="sourceUrl" type="url" value={form.sourceUrl} onChange={(e) => set("sourceUrl", e.target.value)} placeholder="https://…" data-testid="input-source-url" />
-                <p className="text-xs text-muted-foreground">Se muestra como enlace clicable en el listado y en el detalle. Es obligatoria si un Artículo publicado no tiene extractos verificables. Las fichas HTML de la página anterior de la firma no se aceptan: el Artículo queda como borrador hasta sustituir la fuente. No pegues una URL como texto: usa este campo o crea un hipervínculo desde el editor.</p>
+                <Input id="sourceUrl" type="text" inputMode="url" value={form.sourceUrl} onChange={(e) => set("sourceUrl", e.target.value)} placeholder="https://… o /uploads/legacy-publications/documento.pdf" data-testid="input-source-url" />
+                <p className="text-xs text-muted-foreground">Se muestra como enlace clicable en el listado y en el detalle. Es obligatoria si un Artículo publicado no tiene extractos verificables. Las fichas HTML de la página anterior de la firma no se aceptan: el Artículo queda como borrador hasta sustituir la fuente. Los PDFs históricos ya migrados usan su ruta local /uploads/legacy-publications/. No pegues una URL como texto: usa este campo o crea un hipervínculo desde el editor.</p>
               </div>
 
               {isEdit && form.category === "articles" && (

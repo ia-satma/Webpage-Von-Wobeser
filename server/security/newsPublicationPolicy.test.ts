@@ -33,6 +33,8 @@ test("la API conserva el requisito bilingüe para las demás publicaciones", () 
     category: "articles",
   }), false);
   assert.equal(isVerifiedNewsSourceUrl("https://source.example/article"), true);
+  assert.equal(isVerifiedNewsSourceUrl("/uploads/legacy-publications/arbitration-esg.pdf"), true);
+  assert.equal(isVerifiedNewsSourceUrl("/uploads/legacy-publications/../secret.pdf"), false);
   assert.equal(isVerifiedNewsSourceUrl("javascript:alert(1)"), false);
 });
 

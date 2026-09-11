@@ -614,9 +614,7 @@ export default function Footer() {
               <Twitter className="w-5 h-5" aria-hidden="true" />
             </a>
             <a
-              href="https://www.vonwobeser.com"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/"
               className="flex items-center justify-center min-w-[44px] min-h-[44px] p-2 text-white/50 hover:text-white transition-colors touch-manipulation"
               data-testid="link-website"
               aria-label={t.websiteLabel}

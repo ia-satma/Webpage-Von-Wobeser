@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 import "dotenv/config";
+import crypto from "node:crypto";
 import pg from "pg";
 import { Client as AppStorageClient } from "@replit/object-storage";
 import { getPostgresConnectionConfig } from "../shared/postgres-config.mjs";
 
 const PUBLIC_PREFIX = "von-wobeser/public/";
 const PRIVATE_PREFIX = "von-wobeser/private/cvs/";
+const LEGACY_ARCHIVE_PREFIX = "von-wobeser/private/legacy-archive/";
+const LEGACY_ARCHIVE_MANIFEST_OBJECT = `${LEGACY_ARCHIVE_PREFIX}manifest.json`;
 
 function option(name) {
   const prefix = `--${name}=`;
@@ -36,6 +39,12 @@ async function listObjectNames(client, prefix) {
   return new Set(result.value.map((item) => item.name));
 }
 
+async function archiveManifestSha256(client) {
+  const result = await client.downloadAsBytes(LEGACY_ARCHIVE_MANIFEST_OBJECT, { decompress: false });
+  if (!result.ok) return null;
+  return crypto.createHash("sha256").update(result.value[0]).digest("hex");
+}
+
 async function verify() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) throw new Error("DATABASE_URL es obligatorio.");
@@ -50,7 +59,7 @@ async function verify() {
   let summary;
   try {
     const ownerEmail = normalizedEmail(option("owner-email"));
-    const [tables, users, config, applications, practices, industries, attorneys, owner, legacyUsers] = await Promise.all([
+    const [tables, users, config, applications, practices, industries, attorneys, owner, legacyUsers, archiveConfig] = await Promise.all([
       database.query("select count(*)::int as count from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE'"),
       database.query("select count(*)::int as count from admin_users"),
       database.query("select count(*)::int as count from site_config"),
@@ -66,11 +75,14 @@ async function verify() {
           to_regclass('public.users') is not null as present,
           case when to_regclass('public.users') is not null then (select count(*)::int from public.users) else 0 end as rows
       `),
+      database.query("select value from site_config where key = 'legacy_platform_archive_manifest_sha256' limit 1"),
     ]);
     const appStorage = storageClient();
-    const [publicObjects, privateObjects] = await Promise.all([
+    const [publicObjects, privateObjects, legacyArchiveObjects, legacyArchiveManifestSha256] = await Promise.all([
       listObjectNames(appStorage, PUBLIC_PREFIX),
       listObjectNames(appStorage, PRIVATE_PREFIX),
+      listObjectNames(appStorage, LEGACY_ARCHIVE_PREFIX),
+      archiveManifestSha256(appStorage),
     ]);
     const privateReferences = applications.rows.filter((row) => String(row.cv_path).startsWith("private:cvs/"));
     const legacyReferences = applications.rows.filter((row) => !String(row.cv_path).startsWith("private:cvs/"));
@@ -98,6 +110,14 @@ async function verify() {
         legacyCvReferences: legacyReferences.length,
         missingPrivateCvRecords: missingPrivateIds.length,
         missingPrivateCvRecordIds: missingPrivateIds,
+        legacyArchiveObjects: legacyArchiveObjects.size,
+        legacyArchivePages: [...legacyArchiveObjects].filter((name) => /^von-wobeser\/private\/legacy-archive\/pages\/[a-f0-9]{64}\.html$/.test(name)).length,
+        legacyArchiveManifestPresent: legacyArchiveObjects.has(LEGACY_ARCHIVE_MANIFEST_OBJECT),
+        legacyArchiveManifestMatchesDatabase: Boolean(
+          archiveConfig.rows[0]?.value
+          && legacyArchiveManifestSha256
+          && archiveConfig.rows[0].value === legacyArchiveManifestSha256,
+        ),
       },
       security: {
         legacyPlaintextUsersTablePresent: legacyUsers.rows[0].present,
@@ -123,6 +143,9 @@ async function verify() {
     || summary.appStorage.publicObjects < 1
     || summary.appStorage.legacyCvReferences > 0
     || summary.appStorage.missingPrivateCvRecords > 0
+    || summary.appStorage.legacyArchivePages < 108
+    || !summary.appStorage.legacyArchiveManifestPresent
+    || !summary.appStorage.legacyArchiveManifestMatchesDatabase
     || summary.security.legacyPlaintextUsersTablePresent
     || !summary.security.mfaEncryptionKeyConfigured
     || !summary.security.privilegedMfaRequired

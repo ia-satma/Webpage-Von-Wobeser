@@ -349,6 +349,36 @@ function refreshNavigationAssets(html: string): string {
     .replace(/(src=["']\/templates\/beez3\/js\/min\/slick\.min\.js)(?:\?[^"']*)?(["'])/gi, `$1?v=${NAV_ASSET_VERSION}$2`);
 }
 
+/**
+ * Las plantillas archivadas siguen siendo la base visual, pero no pueden emitir
+ * navegación ni feeds de Joomla. Las redirecciones de entrada se conservan en
+ * el router; esta función sólo convierte las salidas públicas a rutas limpias.
+ */
+export function stripLegacyOutboundLinks(html: string): string {
+  const destinations: Array<[RegExp, string]> = [
+    [/^\/(?:vonwobeser_page\/)?index\.php\/publications\/news\/index\.html$/i, "/news?lang=en"],
+    [/^\/(?:vonwobeser_page\/)?index\.php\/publicaciones\/noticias\/index\.html$/i, "/news"],
+    [/^\/(?:vonwobeser_page\/)?index\.php\/publications\/articles\/index\.html$/i, "/articles?lang=en"],
+    [/^\/(?:vonwobeser_page\/)?index\.php\/publicaciones\/articulos\/index\.html$/i, "/articles"],
+    [/^\/(?:vonwobeser_page\/)?index\.php\/our-firm\/diversity\/index\.html$/i, "/our-firm/diversity"],
+    [/^\/(?:vonwobeser_page\/)?index\.php\/nuestra-firma\/diversidad\/index\.html$/i, "/nuestra-firma/diversidad"],
+    [/^\/(?:vonwobeser_page\/)?index\.php\/capabilities\/practices\/index\.html$/i, "/capabilities/practices"],
+    [/^\/(?:vonwobeser_page\/)?index\.php\/capacidades\/practicas\/index\.html$/i, "/capacidades/practicas"],
+    [/^\/(?:vonwobeser_page\/)?index\.php\/capabilities\/industries\/index\.html$/i, "/capabilities/industries"],
+    [/^\/(?:vonwobeser_page\/)?index\.php\/capacidades\/industrias\/index\.html$/i, "/capacidades/industrias"],
+    [/^\/(?:vonwobeser_page\/)?index\.php\/(?:home\/index\.html|index\.html)$/i, "/"],
+  ];
+  let out = html.replace(/<link\b[^>]*\bhref=["'][^"']*\/index\.php\/[^"']*\/format-feed-[^"']*["'][^>]*>\s*/gi, "");
+  out = out.replace(/\b(href|action|src)=(["'])([^"']*\/index\.php\/[^"']*)\2/gi, (full, attribute: string, quote: string, raw: string) => {
+    const pathOnly = raw.split(/[?#]/, 1)[0];
+    const destination = destinations.find(([pattern]) => pattern.test(pathOnly))?.[1];
+    // Cualquier ruta no catalogada es un enlace de respaldo de la plantilla,
+    // nunca una dependencia que pueda volver a cargar la plataforma retirada.
+    return `${attribute}=${quote}${destination || "/"}${quote}`;
+  });
+  return out;
+}
+
 /** Toda superficie que recibe el nav administrable necesita su controlador
  * accesible. Las plantillas Joomla ya lo incluyen; el micrositio de Oficinas
  * no, porque nació con un header independiente. */
@@ -981,7 +1011,7 @@ export async function sendPage(res: Response, html: string, status = 200) {
   }
   const inject = `${consentConfigScript}${navigationLabelsScript(config, lang, navigationItems)}${LANG_TOGGLE_SCRIPT}${SEARCH_FORMS_SCRIPT}${DOC_ACTIONS_SCRIPT}${LEGACY_EVENTS_SCRIPT}`;
   let out = normalizeLegacyTypography(hardenLegacyClientScripts(
-    stripRetiredDeskLinks(refreshNavigationAssets(ensureNavigationRuntime(optimizeLegacyAssets(html)))),
+    stripLegacyOutboundLinks(stripRetiredDeskLinks(refreshNavigationAssets(ensureNavigationRuntime(optimizeLegacyAssets(html))))),
   ));
   out = applyNavigationMarkup(out, navigationItems, lang);
   out = injectPerformanceHints(optimizePublicImageTags(out));

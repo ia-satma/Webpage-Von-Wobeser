@@ -79,6 +79,18 @@ export function registerMirrorLegacyRedirectRoutes(app: Express, runtime: Mirror
     if (!slug) return next();
     return redirectLegacy(`/news/${slug}`, "es")(req, res);
   });
+  // Algunos enlaces compartidos desde la plataforma anterior conservan el
+  // parámetro `?p_id=` en lugar de la variante con archivo HTML. Al recuperar
+  // el dominio, ambos formatos deben llegar a la misma ficha limpia.
+  for (const [legacyPath, lang] of [["/index.php/publication", "en"], ["/index.php/publicacion", "es"]] as const) {
+    app.get(legacyPath, (req, res, next) => {
+      const id = typeof req.query.p_id === "string" ? req.query.p_id : "";
+      if (!/^\d+$/.test(id)) return next();
+      const slug = pubIdMap.get(id);
+      if (!slug) return next();
+      return redirectLegacy(`/news/${slug}`, lang)(req, res);
+    });
+  }
   app.get("/index.php/lawyer/l-:id.html", (req, res, next) => {
     const slug = ids.attorney.get(req.params.id);
     if (!slug) return next();

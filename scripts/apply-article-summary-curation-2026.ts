@@ -2,6 +2,7 @@ import "dotenv/config";
 import pg from "pg";
 import { ARTICLE_SUMMARY_CURATION_20260826 } from "@shared/articleSummaryCuration2026";
 import { getPostgresConnectionConfig } from "@shared/postgres-config.mjs";
+import { isLegacyFirmPublicationUrl } from "../server/newsPublicationPolicy";
 
 const shouldApply = process.argv.includes("--apply");
 if (shouldApply && process.env.CONFIRM_ARTICLE_SUMMARY_CURATION !== "1") {
@@ -92,10 +93,16 @@ try {
 
     // No se pisan correcciones editoriales posteriores: sólo reemplazamos los placeholders
     // detectados; la fuente faltante sí se puede completar de forma independiente.
-    const update: { sourceUrl?: string; excerpt?: string; excerptEs?: string } = {};
+    const update: { sourceUrl?: string | null; sourceUrlChanged?: boolean; excerpt?: string; excerptEs?: string } = {};
     // Sólo se reemplazan URLs que esta curación reconoce expresamente como un
     // apuntador histórico; nunca se pisa una fuente corregida posteriormente.
-    if (!row.source_url || entry.replaceableSourceUrls?.includes(row.source_url)) update.sourceUrl = entry.sourceUrl;
+    if (entry.sourceUrl === null && isLegacyFirmPublicationUrl(row.source_url)) {
+      update.sourceUrl = null;
+      update.sourceUrlChanged = true;
+    } else if (entry.sourceUrl && (!row.source_url || entry.replaceableSourceUrls?.includes(row.source_url))) {
+      update.sourceUrl = entry.sourceUrl;
+      update.sourceUrlChanged = true;
+    }
     if (hasPlaceholderExcerpts) {
       update.excerpt = entry.excerpt;
       update.excerptEs = entry.excerptEs;
@@ -103,11 +110,11 @@ try {
     if (!Object.keys(update).length) continue;
     await client.query(
       `UPDATE news
-          SET source_url = COALESCE($1, source_url),
-              excerpt = COALESCE($2, excerpt),
-              excerpt_es = COALESCE($3, excerpt_es)
-        WHERE slug = $4 AND category = 'articles'`,
-      [update.sourceUrl ?? null, update.excerpt ?? null, update.excerptEs ?? null, entry.slug],
+          SET source_url = CASE WHEN $1 THEN $2 ELSE source_url END,
+              excerpt = COALESCE($3, excerpt),
+              excerpt_es = COALESCE($4, excerpt_es)
+        WHERE slug = $5 AND category = 'articles'`,
+      [Boolean(update.sourceUrlChanged), update.sourceUrl ?? null, update.excerpt ?? null, update.excerptEs ?? null, entry.slug],
     );
     changed += 1;
   }

@@ -11,6 +11,7 @@ import { Client as AppStorageClient } from "@replit/object-storage";
 import { getPostgresConnectionConfig } from "../shared/postgres-config.mjs";
 import { validatePortableManifest, validatePortablePackage } from "./handoff-app-storage.mjs";
 import { validatePrivatePackage } from "./handoff-private-documents.mjs";
+import { validateLegacyArchivePackage } from "./handoff-legacy-archive.mjs";
 import { decryptBackup } from "./migrate-database-to-replit.mjs";
 
 export const HANDOFF_REQUIRED_SECRETS = [
@@ -74,6 +75,8 @@ const PUBLIC_MANIFEST = "app-storage-manifest.json";
 const PUBLIC_CHECKSUM = "app-storage-manifest.sha256";
 const PRIVATE_MANIFEST = "private-documents-manifest.enc";
 const PRIVATE_CHECKSUM = "private-documents-manifest.sha256";
+const LEGACY_ARCHIVE_MANIFEST = "legacy-archive-manifest.enc";
+const LEGACY_ARCHIVE_CHECKSUM = "legacy-archive-manifest.sha256";
 
 function option(name) {
   const prefix = `--${name}=`;
@@ -245,7 +248,7 @@ export async function inspectDatabase(databaseUrl = process.env.DATABASE_URL, ow
 export async function inspectPackage(directory) {
   const root = path.resolve(directory);
   if (!(await exists(root))) {
-    return { complete: false, state: "absent", database: false, publicMedia: false, privateDocuments: false };
+    return { complete: false, state: "absent", database: false, publicMedia: false, privateDocuments: false, legacyArchive: false };
   }
 
   let database = false;
@@ -278,13 +281,18 @@ export async function inspectPackage(directory) {
     exists(path.join(root, "private-documents", PRIVATE_MANIFEST)),
     exists(path.join(root, "private-documents", PRIVATE_CHECKSUM)),
   ]).then((checks) => checks.every(Boolean));
+  const legacyArchive = await Promise.all([
+    exists(path.join(root, "legacy-archive", LEGACY_ARCHIVE_MANIFEST)),
+    exists(path.join(root, "legacy-archive", LEGACY_ARCHIVE_CHECKSUM)),
+  ]).then((checks) => checks.every(Boolean));
 
   return {
-    complete: database && publicMedia && privateDocuments,
-    state: database && publicMedia && privateDocuments ? "complete" : (database || publicMedia || privateDocuments ? "incomplete" : "absent"),
+    complete: database && publicMedia && privateDocuments && legacyArchive,
+    state: database && publicMedia && privateDocuments && legacyArchive ? "complete" : (database || publicMedia || privateDocuments || legacyArchive ? "incomplete" : "absent"),
     database,
     publicMedia,
     privateDocuments,
+    legacyArchive,
   };
 }
 
@@ -384,11 +392,12 @@ async function install(directory) {
   const database = status.database.name;
   const owner = normalizedEmail(process.env.ADMIN_EMAIL);
 
-  console.log("[handoff-install] Validando los tres paquetes antes de escribir en el destino...");
+  console.log("[handoff-install] Validando los cuatro paquetes antes de escribir en el destino...");
   await Promise.all([
     validateEncryptedBackup(backup),
     validatePortablePackage(path.join(root, "app-storage")),
     validatePrivatePackage(path.join(root, "private-documents")),
+    validateLegacyArchivePackage(path.join(root, "legacy-archive")),
   ]);
   console.log("[handoff-install] Restaurando base cifrada en la Database confirmada...");
   await runNode("scripts/migrate-database-to-replit.mjs", [
@@ -409,6 +418,12 @@ async function install(directory) {
     "import",
     `--directory=${path.join(root, "private-documents")}`,
     "--confirm-prefix=von-wobeser/private/cvs",
+  ]);
+  console.log("[handoff-install] Restaurando archivo histórico privado cifrado...");
+  await runNode("scripts/handoff-legacy-archive.mjs", [
+    "import",
+    `--directory=${path.join(root, "legacy-archive")}`,
+    "--confirm-prefix=von-wobeser/private/legacy-archive",
   ]);
   console.log("[handoff-install] Verificando o creando únicamente el Dueño del cliente...");
   await runNode("scripts/bootstrap-client-owner.ts", [`--confirm=${owner}`], ["--import", "tsx"]);

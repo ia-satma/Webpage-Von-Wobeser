@@ -51,8 +51,9 @@ export function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: Config
   const resolveDiversityVideo = (url: string): string | null => (
     url && !OFFICE_SHOWCASE_VIDEO.test(url) && diversityLocalFileExists(url) ? url : null
   );
-  // Los espacios secundarios sólo se muestran si Administración entrega un
-  // video propio de Diversidad. No se rellenan con recursos de otra página.
+  // El carrusel conserva sus siete videos de Diversidad. Si una configuración
+  // heredada apunta a Nuevas oficinas, se omite sólo esa ficha, sin ocultar
+  // el resto del carrusel.
   const slots: Record<string, string | null> = {
     vw_vid_02: mainUrl,
     vid_01: resolveDiversityVideo((config.page_diversity_video_1?.value || "").trim()),
@@ -127,11 +128,6 @@ export function applyDiversityVideoGallery($: cheerio.CheerioAPI, config: Config
     const thumb = v(thumbKey, thumbFallbacks[name] || thumbFallbacks.vw_vid_02);
     $(el).find("img").first().attr({ src: thumb, alt: lang === "es" ? "Vista previa del video" : "Video preview" });
   });
-  if (!Object.entries(slots).some(([name, url]) => name !== "vw_vid_02" && Boolean(url))) {
-    // Una sola ficha que duplica el reproductor no constituye una galería.
-    $(".slide_videos_thumbs").remove();
-  }
-
   const partnerLogos = ["page_diversity_logo_1", "page_diversity_logo_2", "page_diversity_logo_3"];
   $(".page__content--body .pro_img img").each((index, el) => {
     if (partnerLogos[index]) $(el).attr({

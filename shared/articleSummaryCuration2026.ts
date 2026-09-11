@@ -1,25 +1,26 @@
 /**
  * Curación editorial acotada a los Artículos con extractos defectuosos detectados
  * el 26 de agosto de 2026. Los vacíos intencionales representan “solo fuente”:
- * se conserva la publicación verificable sin inventar un resumen.
+ * se conserva la ficha sin inventar un resumen. Las fichas HTML del sistema
+ * retirado ya no se exponen como fuente; su respaldo privado queda trazado en
+ * `legacy-archive/manifest.json`.
  */
+import { LEGACY_PUBLICATION_PDF_PATHS } from "./legacyPublicationAssets";
+
 export type ArticleSummaryCuration = Readonly<{
   slug: string;
   excerpt: string;
   excerptEs: string;
-  sourceUrl: string;
+  sourceUrl: string | null;
   /** URLs de la curación anterior que pueden sustituirse de forma segura por la fuente directa. */
   replaceableSourceUrls?: readonly string[];
 }>;
 
-const legacyPublication = (legacyId: number, language: "en" | "es") =>
-  `https://www.vonwobeser.com/index.php/${language === "en" ? "publication" : "publicacion"}?p_id=${legacyId}`;
-
-const sourceOnly = (slug: string, sourceUrl: string): ArticleSummaryCuration => ({ slug, sourceUrl, excerpt: "", excerptEs: "" });
+const sourceOnly = (slug: string, sourceUrl: string | null): ArticleSummaryCuration => ({ slug, sourceUrl, excerpt: "", excerptEs: "" });
 
 const summary = (
   slug: string,
-  sourceUrl: string,
+  sourceUrl: string | null,
   excerpt: string,
   excerptEs: string,
   replaceableSourceUrls?: readonly string[],
@@ -31,8 +32,8 @@ const summary = (
   ...(replaceableSourceUrls ? { replaceableSourceUrls } : {}),
 });
 
-const legacySourceOnly = (legacyId: number, language: "en" | "es", slug: string) =>
-  sourceOnly(slug, legacyPublication(legacyId, language));
+const legacySourceOnly = (_legacyId: number, _language: "en" | "es", slug: string) =>
+  sourceOnly(slug, null);
 
 export const ARTICLE_SUMMARY_CURATION_20260826: readonly ArticleSummaryCuration[] = [
   summary(
@@ -61,7 +62,6 @@ export const ARTICLE_SUMMARY_CURATION_20260826: readonly ArticleSummaryCuration[
     "https://mundoejecutivo.com.mx/economia/blockchain-compliance-evolucion-cumplimiento/",
     "It explores blockchain as an immutable, decentralized record for documenting compliance evidence and limiting the manipulation or concealment of relevant information. It describes a Mexican pharmaceutical-sector implementation to register reports, transactions, events and complaints.",
     "Explora blockchain como un registro inalterable y descentralizado para documentar evidencia de cumplimiento y limitar la manipulación u ocultamiento de información relevante. Describe una implementación en el sector farmacéutico mexicano para registrar reportes, transacciones, eventos y quejas.",
-    [legacyPublication(1829, "en")],
   ),
   legacySourceOnly(1828, "en", "la-tokenizacion-de-las-cosas-revista-del-ilustre-y-nacional-colegio-de-abogados-"),
   legacySourceOnly(1827, "en", "el-tratamiento-fiscal-de-las-criptomonedas-thomson-reuters-2022"),
@@ -93,7 +93,6 @@ export const ARTICLE_SUMMARY_CURATION_20260826: readonly ArticleSummaryCuration[
     "https://www.milenio.com/opinion/ricardo-cacho/columna-ricardo-cacho/los-jueces-deben-pensar-en-las-victimas",
     "It questions judicial criteria that exclude financial information from criminal investigations on privacy grounds, arguing they can leave victims unprotected. It calls for criminal proceedings to prioritize truth, repair and the protection of victims over formalism.",
     "Cuestiona criterios judiciales que excluyen información financiera de investigaciones penales por motivos de privacidad, al considerar que pueden dejar desprotegidas a las víctimas. Propone que el proceso penal privilegie la verdad, la reparación y la protección de las víctimas sobre el formalismo.",
-    [legacyPublication(1819, "en")],
   ),
   summary(
     "no-hay-crimen-perfecto-periodico-milenio-2020",
@@ -109,7 +108,6 @@ export const ARTICLE_SUMMARY_CURATION_20260826: readonly ArticleSummaryCuration[
     "https://mundoejecutivo.com.mx/economia/blockchain-compliance-evolucion-cumplimiento/",
     "It explores blockchain as an immutable, decentralized record for documenting compliance evidence and limiting the manipulation or concealment of relevant information. It describes a Mexican pharmaceutical-sector implementation to register reports, transactions, events and complaints.",
     "Explora blockchain como un registro inalterable y descentralizado para documentar evidencia de cumplimiento y limitar la manipulación u ocultamiento de información relevante. Describe una implementación en el sector farmacéutico mexicano para registrar reportes, transacciones, eventos y quejas.",
-    [legacyPublication(1814, "es")],
   ),
   legacySourceOnly(1813, "es", "la-tokenizacion-de-las-cosas-revista-del-ilustre-y-nacional-colegio-de-abogados--2"),
   legacySourceOnly(1812, "es", "el-tratamiento-fiscal-de-las-criptomonedas-thomson-reuters-2022-2"),
@@ -141,7 +139,6 @@ export const ARTICLE_SUMMARY_CURATION_20260826: readonly ArticleSummaryCuration[
     "https://www.milenio.com/opinion/ricardo-cacho/columna-ricardo-cacho/los-jueces-deben-pensar-en-las-victimas",
     "It questions judicial criteria that exclude financial information from criminal investigations on privacy grounds, arguing they can leave victims unprotected. It calls for criminal proceedings to prioritize truth, repair and the protection of victims over formalism.",
     "Cuestiona criterios judiciales que excluyen información financiera de investigaciones penales por motivos de privacidad, al considerar que pueden dejar desprotegidas a las víctimas. Propone que el proceso penal privilegie la verdad, la reparación y la protección de las víctimas sobre el formalismo.",
-    [legacyPublication(1804, "es")],
   ),
   summary(
     "no-hay-crimen-perfecto-periodico-milenio-2020-2",
@@ -163,121 +160,121 @@ export const ARTICLE_SUMMARY_CURATION_20260826: readonly ArticleSummaryCuration[
   ),
   {
     slug: "esg-en-la-industria-minera-mexicana-cuarta-parte",
-    sourceUrl: "https://www.vonwobeser.com/images/PDF_news/2023/ESG4/23_05_22_MINERIA_ESG_ENG-Pt4-OK.pdf",
+    sourceUrl: LEGACY_PUBLICATION_PDF_PATHS.miningEsgPartFour,
     excerpt: "This installment examines how greenhouse-gas emissions and energy efficiency shape the environmental dimension of ESG criteria in mining. It addresses ways projects can demonstrate the sustainability of their emissions.",
     excerptEs: "Esta entrega examina cómo las emisiones de gases de efecto invernadero y la eficiencia energética inciden en la dimensión ambiental de los criterios ESG en la minería. Aborda alternativas para que los proyectos acrediten la sostenibilidad de sus emisiones.",
   },
   {
     slug: "esg-in-the-mexican-mining-industry-part-four",
-    sourceUrl: "https://www.vonwobeser.com/images/PDF_news/2023/ESG4/23_05_22_MINERIA_ESG_ENG-Pt4-OK.pdf",
+    sourceUrl: LEGACY_PUBLICATION_PDF_PATHS.miningEsgPartFour,
     excerpt: "This installment examines how greenhouse-gas emissions and energy efficiency shape the environmental dimension of ESG criteria in mining. It addresses ways projects can demonstrate the sustainability of their emissions.",
     excerptEs: "Esta entrega examina cómo las emisiones de gases de efecto invernadero y la eficiencia energética inciden en la dimensión ambiental de los criterios ESG en la minería. Aborda alternativas para que los proyectos acrediten la sostenibilidad de sus emisiones.",
   },
   summary(
     "una-vision-interdisciplinaria-en-el-combate-a-la-corrupcion-2",
-    "https://www.vonwobeser.com/images/PDF_news/2023/vision_combate.pdf",
+    LEGACY_PUBLICATION_PDF_PATHS.antiCorruption,
     "This UNAM collective volume brings together interdisciplinary analyses of corruption in Mexico, from the National Anti-Corruption System and public contracting to transparency, accountability, competition and prevention.",
     "Este volumen colectivo de la UNAM reúne análisis interdisciplinarios sobre la corrupción en México, desde el Sistema Nacional Anticorrupción y las contrataciones públicas hasta la transparencia, la rendición de cuentas, la competencia y la prevención.",
   ),
   summary(
     "una-vision-interdisciplinaria-en-el-combate-a-la-corrupcion",
-    "https://www.vonwobeser.com/images/PDF_news/2023/vision_combate.pdf",
+    LEGACY_PUBLICATION_PDF_PATHS.antiCorruption,
     "This UNAM collective volume brings together interdisciplinary analyses of corruption in Mexico, from the National Anti-Corruption System and public contracting to transparency, accountability, competition and prevention.",
     "Este volumen colectivo de la UNAM reúne análisis interdisciplinarios sobre la corrupción en México, desde el Sistema Nacional Anticorrupción y las contrataciones públicas hasta la transparencia, la rendición de cuentas, la competencia y la prevención.",
   ),
   {
     slug: "esg-en-la-industria-minera-mexicana-tercera-parte",
-    sourceUrl: "https://www.vonwobeser.com/images/PDF_news/2022/22_08_11_ESG_En-la-Industria-Minera-Mexicana-3_ENG.pdf",
+    sourceUrl: LEGACY_PUBLICATION_PDF_PATHS.miningEsgPartThree,
     excerpt: "Part three reviews the four remaining environmental areas of the Responsible Mining Index for the mining industry. It examines risks and practices including operational noise and vibration.",
     excerptEs: "La tercera parte revisa los cuatro ejes ambientales restantes del Responsible Mining Index para la industria minera. Analiza riesgos y prácticas vinculados, entre otros aspectos, con el ruido y las vibraciones durante la operación.",
   },
   {
     slug: "esg-in-the-mexican-mining-industry-part-three",
-    sourceUrl: "https://www.vonwobeser.com/images/PDF_news/2022/22_08_11_ESG_En-la-Industria-Minera-Mexicana-3_ENG.pdf",
+    sourceUrl: LEGACY_PUBLICATION_PDF_PATHS.miningEsgPartThree,
     excerpt: "Part three reviews the four remaining environmental areas of the Responsible Mining Index for the mining industry. It examines risks and practices including operational noise and vibration.",
     excerptEs: "La tercera parte revisa los cuatro ejes ambientales restantes del Responsible Mining Index para la industria minera. Analiza riesgos y prácticas vinculados, entre otros aspectos, con el ruido y las vibraciones durante la operación.",
   },
   summary(
     "preparate-para-el-proximo-cisne-2",
-    "https://www.vonwobeser.com/images/PDF/2022/Preparate_Para_el_Proximo_Cisne1.pdf",
+    LEGACY_PUBLICATION_PDF_PATHS.nextBlackSwan,
     "The article treats climate change as a major systemic risk and argues that organizations should prioritize strategies to address it. It presents ESG management as a tool to identify, monitor and communicate related risks and opportunities.",
     "El artículo aborda el cambio climático como un riesgo sistémico relevante y sostiene que las organizaciones deben priorizar estrategias para enfrentarlo. Presenta la gestión ESG como una herramienta para identificar, monitorear y comunicar los riesgos y oportunidades relacionados.",
   ),
   summary(
     "preparate-para-el-proximo-cisne",
-    "https://www.vonwobeser.com/images/PDF/2022/Preparate_Para_el_Proximo_Cisne1.pdf",
+    LEGACY_PUBLICATION_PDF_PATHS.nextBlackSwan,
     "The article treats climate change as a major systemic risk and argues that organizations should prioritize strategies to address it. It presents ESG management as a tool to identify, monitor and communicate related risks and opportunities.",
     "El artículo aborda el cambio climático como un riesgo sistémico relevante y sostiene que las organizaciones deben priorizar estrategias para enfrentarlo. Presenta la gestión ESG como una herramienta para identificar, monitorear y comunicar los riesgos y oportunidades relacionados.",
   ),
   {
     slug: "esg-en-la-industria-minera-mexicana-segunda-parte",
-    sourceUrl: "https://www.vonwobeser.com/images/PDF_news/2021/21_10_12_MINERIA_ESG_ING.pdf",
+    sourceUrl: LEGACY_PUBLICATION_PDF_PATHS.miningEsgPartOneAndTwo,
     excerpt: "Part two addresses mining’s economic relevance and the environmental impacts associated with its operation. It introduces the first environmental best-practice areas of the Responsible Mining Index.",
     excerptEs: "Esta segunda parte aborda la importancia económica de la minería y los impactos ambientales asociados a su operación. Presenta los primeros ejes de mejores prácticas ambientales del Responsible Mining Index.",
   },
   {
     slug: "esg-in-the-mexican-mining-industry-part-two",
-    sourceUrl: "https://www.vonwobeser.com/images/PDF_news/2021/21_10_12_MINERIA_ESG_ING.pdf",
+    sourceUrl: LEGACY_PUBLICATION_PDF_PATHS.miningEsgPartOneAndTwo,
     excerpt: "Part two addresses mining’s economic relevance and the environmental impacts associated with its operation. It introduces the first environmental best-practice areas of the Responsible Mining Index.",
     excerptEs: "Esta segunda parte aborda la importancia económica de la minería y los impactos ambientales asociados a su operación. Presenta los primeros ejes de mejores prácticas ambientales del Responsible Mining Index.",
   },
   {
     slug: "el-rol-del-arbitraje-en-disputas-esg",
-    sourceUrl: "https://www.vonwobeser.com/images/PDF_news/2021/21_11_12_ARBITRAJE_ESG_ING.pdf",
+    sourceUrl: LEGACY_PUBLICATION_PDF_PATHS.arbitrationEsg,
     excerpt: "The article examines the growing presence of ESG criteria in commercial and investment disputes. It explains how climate change, human rights and corporate responsibility are reflected in arbitration.",
     excerptEs: "El artículo examina la creciente presencia de criterios ESG en disputas comerciales y de inversión. Explica cómo el cambio climático, los derechos humanos y la responsabilidad empresarial se reflejan en el arbitraje.",
   },
   {
     slug: "the-role-of-arbitration-in-esg-disputes",
-    sourceUrl: "https://www.vonwobeser.com/images/PDF_news/2021/21_11_12_ARBITRAJE_ESG_ING.pdf",
+    sourceUrl: LEGACY_PUBLICATION_PDF_PATHS.arbitrationEsg,
     excerpt: "The article examines the growing presence of ESG criteria in commercial and investment disputes. It explains how climate change, human rights and corporate responsibility are reflected in arbitration.",
     excerptEs: "El artículo examina la creciente presencia de criterios ESG en disputas comerciales y de inversión. Explica cómo el cambio climático, los derechos humanos y la responsabilidad empresarial se reflejan en el arbitraje.",
   },
   {
     slug: "esg-en-la-industria-minera-mexicana-primera-parte",
-    sourceUrl: "https://www.vonwobeser.com/images/PDF_news/2021/21_10_12_MINERIA_ESG_ING.pdf",
+    sourceUrl: LEGACY_PUBLICATION_PDF_PATHS.miningEsgPartOneAndTwo,
     excerpt: "Part one introduces the evolution of ESG criteria and their relevance to the mining industry. It explains why companies must integrate environmental and social factors alongside financial results.",
     excerptEs: "La primera parte introduce la evolución de los criterios ESG y su relevancia para la industria minera. Expone por qué las empresas deben integrar factores ambientales y sociales además de los resultados financieros.",
   },
   {
     slug: "esg-in-the-mexican-mining-industry-first-section",
-    sourceUrl: "https://www.vonwobeser.com/images/PDF_news/2021/21_10_12_MINERIA_ESG_ING.pdf",
+    sourceUrl: LEGACY_PUBLICATION_PDF_PATHS.miningEsgPartOneAndTwo,
     excerpt: "Part one introduces the evolution of ESG criteria and their relevance to the mining industry. It explains why companies must integrate environmental and social factors alongside financial results.",
     excerptEs: "La primera parte introduce la evolución de los criterios ESG y su relevancia para la industria minera. Expone por qué las empresas deben integrar factores ambientales y sociales además de los resultados financieros.",
   },
   summary(
     "claus-von-wobeser-adrian-magallanes-getting-the-deal-through-investment-treaty-m",
-    "https://www.vonwobeser.com/images/PDF_news/PDF_articles/2013/45-MexicoInvestmentTreaty.pdf",
+    LEGACY_PUBLICATION_PDF_PATHS.investmentTreaty,
     "This country guide outlines Mexico's foreign-investment framework, including treaties, domestic rules, sector restrictions and routes for resolving investor-state disputes. It also covers institutions involved in investment promotion and regulation.",
     "Esta guía de país presenta el marco mexicano de inversión extranjera, incluidos los tratados, las reglas internas, las restricciones sectoriales y las vías para resolver controversias entre inversionistas y el Estado. También aborda las instituciones encargadas de promover y regular la inversión.",
   ),
   summary(
     "claus-von-wobeser-adrian-magallanes-getting-the-deal-through-investment-treaty-m-2",
-    "https://www.vonwobeser.com/images/PDF_news/PDF_articles/2013/45-MexicoInvestmentTreaty.pdf",
+    LEGACY_PUBLICATION_PDF_PATHS.investmentTreaty,
     "This country guide outlines Mexico's foreign-investment framework, including treaties, domestic rules, sector restrictions and routes for resolving investor-state disputes. It also covers institutions involved in investment promotion and regulation.",
     "Esta guía de país presenta el marco mexicano de inversión extranjera, incluidos los tratados, las reglas internas, las restricciones sectoriales y las vías para resolver controversias entre inversionistas y el Estado. También aborda las instituciones encargadas de promover y regular la inversión.",
   ),
   summary(
     "rodolfo-trampe-jorge-diaz-jose-palomar-getting-the-deal-through-outsourcing-mexi-2",
-    "https://www.vonwobeser.com/images/PDF_news/2015/MexicoOutsourcingNov2013.pdf",
+    LEGACY_PUBLICATION_PDF_PATHS.outsourcing,
     "This guide distinguishes specialized outsourcing services from personnel subcontracting in Mexico and reviews their legal consequences. It surveys applicable labor, civil and sector-specific rules, including risks of employer liability.",
     "Esta guía distingue los servicios especializados de outsourcing de la subcontratación de personal en México y revisa sus consecuencias jurídicas. Examina reglas laborales, civiles y sectoriales aplicables, incluidos los riesgos de responsabilidad para la empresa beneficiaria.",
   ),
   summary(
     "rodolfo-trampe-jorge-diaz-jose-palomar-getting-the-deal-through-outsourcing-mexi",
-    "https://www.vonwobeser.com/images/PDF_news/2015/MexicoOutsourcingNov2013.pdf",
+    LEGACY_PUBLICATION_PDF_PATHS.outsourcing,
     "This guide distinguishes specialized outsourcing services from personnel subcontracting in Mexico and reviews their legal consequences. It surveys applicable labor, civil and sector-specific rules, including risks of employer liability.",
     "Esta guía distingue los servicios especializados de outsourcing de la subcontratación de personal en México y revisa sus consecuencias jurídicas. Examina reglas laborales, civiles y sectoriales aplicables, incluidos los riesgos de responsabilidad para la empresa beneficiaria.",
   ),
   summary(
     "claus-von-wobeser-international-bar-association-guide-iba-arbitration-guide-mexi",
-    "https://www.vonwobeser.com/images/PDF_news/2015/IBAMexicoChapterInternationalArbitrationGuide2013.pdf",
+    LEGACY_PUBLICATION_PDF_PATHS.arbitrationGuide,
     "This guide describes the legal framework and practice of arbitration in Mexico, addressing agreements, arbitrability, appointment of arbitrators, evidence, awards and enforcement. It covers domestic and international proceedings under the Mexican Commerce Code and applicable conventions.",
     "Esta guía describe el marco jurídico y la práctica del arbitraje en México, incluidos los convenios arbitrales, la arbitrabilidad, el nombramiento de árbitros, la prueba, los laudos y su ejecución. Abarca procedimientos nacionales e internacionales conforme al Código de Comercio y los convenios aplicables.",
   ),
   summary(
     "claus-von-wobeser-international-bar-association-iba-guia-de-arbitraje-en-mexico",
-    "https://www.vonwobeser.com/images/PDF_news/2015/IBAMexicoChapterInternationalArbitrationGuide2013.pdf",
+    LEGACY_PUBLICATION_PDF_PATHS.arbitrationGuide,
     "This guide describes the legal framework and practice of arbitration in Mexico, addressing agreements, arbitrability, appointment of arbitrators, evidence, awards and enforcement. It covers domestic and international proceedings under the Mexican Commerce Code and applicable conventions.",
     "Esta guía describe el marco jurídico y la práctica del arbitraje en México, incluidos los convenios arbitrales, la arbitrabilidad, el nombramiento de árbitros, la prueba, los laudos y su ejecución. Abarca procedimientos nacionales e internacionales conforme al Código de Comercio y los convenios aplicables.",
   ),

@@ -204,6 +204,16 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260910_0002_remove_new_offices_videos_from_diversity.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Restablece únicamente el carrusel original de Diversidad después de la
+  // separación de los videos de Nuevas oficinas, sin borrar personalizaciones.
+  ["20260910_0003_restore_diversity_carousel.mjs", {
+    allowedCountChanges: new Set(),
+  }],
+  // Reubica el carrusel restaurado dentro del espejo, para que no dependa
+  // de rutas de la plataforma anterior ni de su disponibilidad.
+  ["20260910_0004_localize_diversity_videos.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica

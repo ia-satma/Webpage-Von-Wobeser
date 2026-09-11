@@ -5,6 +5,7 @@ import { applySeo, articleNode, breadcrumbNode, clip } from "./seo";
 import { getLocalizedAttorneyRole, getLocalizedAttorneyTitle } from "@shared/attorneyTitles";
 import { getAttorneyPublicName } from "@shared/attorneyName";
 import { isLegacyFirmPublicationUrl } from "../newsPublicationPolicy";
+import { isLegacyPublicationPdfPath } from "@shared/legacyPublicationAssets";
 
 type Lang = "en" | "es";
 
@@ -70,6 +71,7 @@ function verifiedSourceUrl(value: unknown): string | null {
   // Defensa en profundidad: una ficha olvidada en la base de datos nunca debe
   // volver a ofrecer como CTA la página anterior de la firma.
   if (isLegacyFirmPublicationUrl(raw)) return null;
+  if (isLegacyPublicationPdfPath(raw)) return raw;
   try {
     const url = new URL(raw);
     if (url.protocol !== "https:" || url.username || url.password) return null;

@@ -42,6 +42,7 @@ export function normalizeOptionalOriginalSourceUrl(value: unknown): string | nul
 }
 
 export function isVerifiedNewsSourceUrl(value: unknown): boolean {
+  if (isLegacyPublicationPdfPath(value)) return true;
   try {
     const url = new URL(String(value ?? "").trim());
     return url.protocol === "https:" && !url.username && !url.password;
@@ -88,3 +89,4 @@ export function hasPublishableNewsContent(item: {
   const hasExcerpts = hasCmsText(item.excerpt) && hasCmsText(item.excerptEs);
   return hasTitles && (hasExcerpts || (item.category === "articles" && isVerifiedNewsSourceUrl(item.sourceUrl)));
 }
+import { isLegacyPublicationPdfPath } from "@shared/legacyPublicationAssets";

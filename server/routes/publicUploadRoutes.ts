@@ -4,8 +4,31 @@ import path from "node:path";
 import { storage } from "../storage";
 import { servePersistentManagedMedia } from "./managedMedia";
 import { uploadsDir } from "./uploadMiddleware";
+import { persistentMediaIsRequired } from "../media/persistentMedia";
+
+const legacyPublicationDir = path.resolve(process.cwd(), "legacy-archive", "publications");
 
 export function registerPublicUploadRoutes(app: Express): void {
+  // Los nueve PDFs migrados tienen una copia versionada para desarrollo y una
+  // copia obligatoria en App Storage para producción. En un deployment nunca
+  // se permite caer de regreso al sitio retirado ni a un disco efímero.
+  app.use("/uploads/legacy-publications", async (req: Request, res: Response, next: NextFunction) => {
+    const publicPath = `/uploads/legacy-publications${req.path}`;
+    if (persistentMediaIsRequired()) {
+      if (await servePersistentManagedMedia(req, res, publicPath)) return;
+      return res.status(503).json({ error: "Migrated document storage is unavailable" });
+    }
+    next();
+  });
+  app.use("/uploads/legacy-publications", express.static(legacyPublicationDir, {
+    maxAge: "1d",
+    immutable: true,
+    setHeaders: (res) => {
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Content-Security-Policy", "sandbox");
+    },
+  }));
+
   // Los CV históricos que alguna vez quedaron en /uploads tampoco se exponen sin
   // autenticación. Se siguen pudiendo descargar desde el endpoint administrativo.
   app.use("/uploads", async (req: Request, res: Response, next: NextFunction) => {

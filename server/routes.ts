@@ -39,6 +39,12 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   await ensurePrivateUploadDirectories();
+  // El archivo HTML del sitio retirado se versiona sólo como respaldo y se
+  // almacena bajo un prefijo privado de App Storage. Nunca actúa como una web
+  // secundaria ni puede caer en el catch-all público del espejo.
+  app.all(["/legacy-archive", "/legacy-archive/*"], (_req, res) => {
+    res.set("Cache-Control", "no-store").status(404).end();
+  });
   if (process.env.SECURITY_READ_ONLY_SMOKE !== "true" && !isMigrationReadOnlyEnabled()) {
     await seed();
   }

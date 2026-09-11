@@ -671,7 +671,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1014",
     isPartner: true, 
     order: 22, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/AdrianCastillo_Hires.jpg" 
+    imageUrl: "/images/asociados/AdrianCastillo_HiRes.jpg"
   },
   { 
     name: "Claus von Wobeser", 
@@ -686,7 +686,7 @@ const teamMembersData = [
     phone: "+52 (55) 5258-1000",
     isPartner: false, 
     order: 23, 
-    imageUrl: "https://www.vonwobeser.com/images/Socios/Fotos_socios/ClausVonWobeser_Hires.jpg",
+    imageUrl: "/images/Socios/Fotos_socios/01-Claus-von-Wobeser.jpg",
     education: [
       { school: "Universidad Nacional Autónoma de México (UNAM)", schoolEs: "Universidad Nacional Autónoma de México (UNAM)", degree: "Law Degree (Licenciatura en Derecho)", degreeEs: "Licenciatura en Derecho", year: "1976" },
       { school: "University of Freiburg, Germany", schoolEs: "Universidad de Friburgo, Alemania", degree: "Dr. iur. (Doctorate in Law)", degreeEs: "Dr. iur. (Doctorado en Derecho)", year: "1983" },
@@ -999,9 +999,9 @@ const canonicalDropboxNewsItems = loadCanonicalDropboxNews2026();
 const newsData = applyCanonicalDropboxNews2026(legacyNewsData) as typeof news.$inferInsert[];
 
 const officeImagesData = [
-  { imageUrl: "https://vonwobeser.com/images/vonwobeser_2025.png", alt: "Von Wobeser y Sierra new offices at Torre SOMA", altEs: "Nuevas oficinas de Von Wobeser y Sierra en Torre SOMA", order: 1 },
-  { imageUrl: "https://vonwobeser.com/images/vonwobeser_2025.png", alt: "Modern collaborative workspace in Polanco", altEs: "Espacio de trabajo colaborativo moderno en Polanco", order: 2 },
-  { imageUrl: "https://vonwobeser.com/images/vonwobeser_2025.png", alt: "Von Wobeser y Sierra meeting rooms", altEs: "Salas de juntas de Von Wobeser y Sierra", order: 3 },
+  { imageUrl: "/img/Collage/collage_01.jpg", alt: "Von Wobeser y Sierra new offices at Torre SOMA", altEs: "Nuevas oficinas de Von Wobeser y Sierra en Torre SOMA", order: 1 },
+  { imageUrl: "/img/Collage/collage_02.jpg", alt: "Modern collaborative workspace in Polanco", altEs: "Espacio de trabajo colaborativo moderno en Polanco", order: 2 },
+  { imageUrl: "/img/Collage/collage_05.jpg", alt: "Von Wobeser y Sierra meeting rooms", altEs: "Salas de juntas de Von Wobeser y Sierra", order: 3 },
 ];
 
 const representativeMattersData = [
