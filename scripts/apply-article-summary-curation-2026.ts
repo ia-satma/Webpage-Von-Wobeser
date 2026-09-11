@@ -1,6 +1,7 @@
 import "dotenv/config";
 import pg from "pg";
 import { ARTICLE_SUMMARY_CURATION_20260826 } from "@shared/articleSummaryCuration2026";
+import { isLegacyPublicationPdfPath } from "@shared/legacyPublicationAssets";
 import { getPostgresConnectionConfig } from "@shared/postgres-config.mjs";
 import { isLegacyFirmPublicationUrl } from "../server/newsPublicationPolicy";
 
@@ -51,6 +52,10 @@ function isHttpsSource(value: string): boolean {
   }
 }
 
+function isApprovedSource(value: string | null): boolean {
+  return value === null || isHttpsSource(value) || isLegacyPublicationPdfPath(value);
+}
+
 const client = new pg.Client({ ...getPostgresConnectionConfig(databaseUrl) });
 await client.connect();
 try {
@@ -80,7 +85,7 @@ try {
   let summaries = 0;
   let sourceOnly = 0;
   for (const entry of ARTICLE_SUMMARY_CURATION_20260826) {
-    if (!isHttpsSource(entry.sourceUrl)) throw new Error(`Invalid source URL for ${entry.slug}`);
+    if (!isApprovedSource(entry.sourceUrl)) throw new Error(`Invalid source URL for ${entry.slug}`);
     const row = rows.get(entry.slug)!;
     const hasPlaceholderExcerpts = isPlaceholder(row.excerpt, row.title) && isPlaceholder(row.excerpt_es, row.title_es);
     const hasTarget = row.excerpt === entry.excerpt
