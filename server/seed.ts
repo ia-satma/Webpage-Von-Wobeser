@@ -538,7 +538,7 @@ const teamMembersData = [
     email: "pfautsch@vwys.com.mx", 
     phone: "+52 (55) 5258-1072",
     isPartner: true, 
-    order: 12, 
+    order: 14,
     imageUrl: "/partner_photos/pablo_fautsch.jpg" 
   },
   { 
@@ -553,7 +553,7 @@ const teamMembersData = [
     email: "jrocha@vwys.com.mx", 
     phone: "+52 (55) 5258-1076",
     isPartner: true, 
-    order: 13, 
+    order: 15,
     imageUrl: "/partner_photos/jessika_rocha.jpg" 
   },
   { 
@@ -566,7 +566,7 @@ const teamMembersData = [
     email: "rsoberanis@vwys.com.mx", 
     phone: "+52 (55) 5258-1059",
     isPartner: true, 
-    order: 14, 
+    order: 12,
     imageUrl: "/partner_photos/raymundo_soberanis.jpg" 
   },
   { 
@@ -579,7 +579,7 @@ const teamMembersData = [
     email: "pjimenez@vwys.com.mx", 
     phone: "+52 (55) 5258-1016",
     isPartner: true, 
-    order: 15, 
+    order: 13,
     imageUrl: "/partner_photos/pablo_jimenez.jpg" 
   },
   { 
