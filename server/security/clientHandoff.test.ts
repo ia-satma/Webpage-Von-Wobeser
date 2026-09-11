@@ -20,6 +20,16 @@ import {
   requiredSecretsStatus,
 } from "../../scripts/client-handoff.mjs";
 
+// Replit agrega este bloque al archivo de trabajo al vincular App Storage. No
+// forma parte del repositorio ni debe confundirse con un bucket versionado.
+// Cualquier otra aparición del ID sigue siendo un fallo de seguridad.
+function withoutReplitManagedObjectStorage(config: string): string {
+  return config.replace(
+    /^\[objectStorage\]\r?\ndefaultBucketID\s*=\s*"replit-objstore-[a-f0-9-]+"\r?\n?/im,
+    "",
+  );
+}
+
 test("el paquete de App Storage solo acepta medios públicos administrados", () => {
   const objectName = `${PORTABLE_STORAGE_PREFIX}/uploads/imagen-2026.webp`;
   assert.equal(assertPortableObjectName(objectName), objectName);
@@ -56,7 +66,7 @@ test("el repositorio no versiona paquetes de entrega ni IDs de bucket", async ()
     fs.readFile(path.join(process.cwd(), "package.json"), "utf8"),
   ]);
   assert.match(gitignore, /^\.handoff\/$/m);
-  assert.doesNotMatch(replit, /defaultBucketID|replit-objstore-/);
+  assert.doesNotMatch(withoutReplitManagedObjectStorage(replit), /defaultBucketID|replit-objstore-/);
   assert.match(packageJson, /handoff:storage/);
   assert.match(packageJson, /handoff:private/);
   assert.match(packageJson, /handoff:legacy-archive/);

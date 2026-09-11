@@ -218,10 +218,17 @@ test("la herramienta usa respaldos custom y restauración de una sola transacci�
   assert.match(source, /confirm-source/);
   assert.match(source, /process\.env\.SOURCE_DATABASE_URL\?\.trim/);
   const replitConfig = await fs.readFile(path.join(process.cwd(), ".replit"), "utf8");
+  // Replit inyecta este bloque únicamente en su copia de trabajo al enlazar
+  // App Storage. Conservamos la revisión para cualquier otro ID agregado al
+  // repositorio o a la configuración.
+  const replitConfigWithoutManagedObjectStorage = replitConfig.replace(
+    /^\[objectStorage\]\r?\ndefaultBucketID\s*=\s*"replit-objstore-[a-f0-9-]+"\r?\n?/im,
+    "",
+  );
   // El canal estable elegido por Replit expone PostgreSQL 16; el script aún
   // detecta y exige una versión mayor si la base origen lo requiere.
   assert.match(replitConfig, /postgresql_16/);
-  assert.doesNotMatch(replitConfig, /defaultBucketID/);
+  assert.doesNotMatch(replitConfigWithoutManagedObjectStorage, /defaultBucketID|replit-objstore-/);
 });
 
 test("una restauración exige confirmar exactamente la base destino", () => {
