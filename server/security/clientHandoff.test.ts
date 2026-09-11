@@ -105,6 +105,8 @@ test("la auditoría de entrega exige datos y medios sin imprimir información pe
   assert.match(source, /legacyArchivePages < 108/);
   assert.match(source, /legacyArchiveManifestMatchesDatabase/);
   assert.match(source, /select exists\(select 1 from admin_users where lower\(email\)/i);
+  assert.match(source, /legacyUsersTable\.rows\[0\]\.present/);
+  assert.doesNotMatch(source, /case when to_regclass\('public\.users'\)[\s\S]*from public\.users/i);
   assert.doesNotMatch(source, /select\s+(?:first_name|last_name|cv_original_name)/i);
 });
 

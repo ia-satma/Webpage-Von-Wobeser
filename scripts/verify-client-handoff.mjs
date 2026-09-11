@@ -59,7 +59,7 @@ async function verify() {
   let summary;
   try {
     const ownerEmail = normalizedEmail(option("owner-email"));
-    const [tables, users, config, applications, practices, industries, attorneys, owner, legacyUsers, archiveConfig] = await Promise.all([
+    const [tables, users, config, applications, practices, industries, attorneys, owner, legacyUsersTable, archiveConfig] = await Promise.all([
       database.query("select count(*)::int as count from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE'"),
       database.query("select count(*)::int as count from admin_users"),
       database.query("select count(*)::int as count from site_config"),
@@ -70,13 +70,16 @@ async function verify() {
       ownerEmail
         ? database.query("select exists(select 1 from admin_users where lower(email) = $1) as present", [ownerEmail])
         : Promise.resolve({ rows: [{ present: null }] }),
-      database.query(`
-        select
-          to_regclass('public.users') is not null as present,
-          case when to_regclass('public.users') is not null then (select count(*)::int from public.users) else 0 end as rows
-      `),
+      // A fresh installation deliberately has no legacy `users` table.  A
+      // conditional SQL expression would still resolve public.users at parse
+      // time and fail before CASE can select its safe branch, so only count
+      // it after its presence is known.
+      database.query("select to_regclass('public.users') is not null as present"),
       database.query("select value from site_config where key = 'legacy_platform_archive_manifest_sha256' limit 1"),
     ]);
+    const legacyUsers = legacyUsersTable.rows[0].present
+      ? await database.query("select count(*)::int as rows from public.users")
+      : { rows: [{ rows: 0 }] };
     const appStorage = storageClient();
     const [publicObjects, privateObjects, legacyArchiveObjects, legacyArchiveManifestSha256] = await Promise.all([
       listObjectNames(appStorage, PUBLIC_PREFIX),
@@ -120,7 +123,7 @@ async function verify() {
         ),
       },
       security: {
-        legacyPlaintextUsersTablePresent: legacyUsers.rows[0].present,
+        legacyPlaintextUsersTablePresent: legacyUsersTable.rows[0].present,
         legacyPlaintextUsersRows: legacyUsers.rows[0].rows,
         mfaEncryptionKeyConfigured: validMfaEncryptionKey(process.env.MFA_ENCRYPTION_KEY),
         privilegedMfaRequired: process.env.MFA_REQUIRED_FOR_PRIVILEGED === "true",
