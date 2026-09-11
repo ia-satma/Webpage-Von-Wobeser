@@ -321,10 +321,16 @@ httpServer.listen(
   },
   () => {
     log(`serving on port ${port}`);
+    // Autoscale comienza a sondear el puerto apenas queda enlazado. Esperar a
+    // que el callback de listen se ejecute permite que `/healthz` responda
+    // "Starting" mientras el espejo, las rutas y las semillas terminan de
+    // prepararse, en vez de agotar el presupuesto de healthchecks durante un
+    // arranque en frío.
+    setImmediate(() => {
+      void bootstrapApplication().catch((error) => {
+        applicationStartupError = true;
+        console.error("[startup] Application bootstrap failed", error instanceof Error ? error.stack || error.message : error);
+      });
+    });
   },
 );
-
-void bootstrapApplication().catch((error) => {
-  applicationStartupError = true;
-  console.error("[startup] Application bootstrap failed", error instanceof Error ? error.stack || error.message : error);
-});
