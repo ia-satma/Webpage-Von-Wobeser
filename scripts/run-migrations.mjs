@@ -214,6 +214,11 @@ const verifiedDataMigrationPolicies = new Map([
   ["20260910_0004_localize_diversity_videos.mjs", {
     allowedCountChanges: new Set(),
   }],
+  // Corrige el año de sociedad de Michel Llorens únicamente cuando conserva
+  // el dato heredado 2024; una edición administrativa distinta se protege.
+  ["20260910_0005_correct_michel_llorens_partner_since_year.mjs", {
+    allowedCountChanges: new Set(),
+  }],
 ]);
 
 // Algunos entornos de publicación se crearon sin una publicación histórica
