@@ -17,6 +17,10 @@ if (["empty", "partial", "unavailable"].includes(status.state)) {
 } else {
   await run("npm", ["run", "verify:video-runtime"]);
   await run("npm", ["run", "db:migrate"]);
+  // Si una base de deployment fue restaurada después de la migración original,
+  // reconstruye la marca de seguridad sólo tras verificar cada objeto local y
+  // remoto del archivo histórico. No descarga ni depende del sitio retirado.
+  await run(process.execPath, ["--import", "tsx", "scripts/reconcile-legacy-platform-archive.ts"]);
   // La curación editorial es idempotente y debe ejecutarse después de que
   // source_url exista también en la base del deployment (Preview/producción).
   await run("npm", ["run", "content:apply-article-curation"]);
