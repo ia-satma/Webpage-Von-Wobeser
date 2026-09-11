@@ -7,7 +7,6 @@ import { Client as AppStorageClient } from "@replit/object-storage";
 import { getPostgresConnectionConfig } from "@shared/postgres-config.mjs";
 import { LEGACY_PUBLICATION_PDF_PATHS } from "@shared/legacyPublicationAssets";
 import { managedMediaObjectName, persistentMediaStorageStatus } from "../server/media/persistentMedia";
-import { PRIVATE_LEGACY_ARCHIVE_PREFIX, assertPrivateLegacyArchiveObjectName } from "./handoff-legacy-archive.mjs";
 
 type ArchiveEntry = {
   localPath: string;
@@ -27,9 +26,23 @@ const ROOT = path.resolve(process.cwd());
 const ARCHIVE_DIR = path.join(ROOT, "legacy-archive");
 const MANIFEST_PATH = path.join(ARCHIVE_DIR, "manifest.json");
 const MARKER_KEY = "legacy_platform_archive_manifest_sha256";
+const PRIVATE_LEGACY_ARCHIVE_PREFIX = "von-wobeser/private/legacy-archive";
 
 function digest(bytes: Buffer): string {
   return crypto.createHash("sha256").update(bytes).digest("hex");
+}
+
+function assertPrivateLegacyArchiveObjectName(objectName: string): string {
+  const normalized = String(objectName || "").trim();
+  const prefix = `${PRIVATE_LEGACY_ARCHIVE_PREFIX}/`;
+  if (!normalized.startsWith(prefix) || normalized.includes("\\") || normalized.includes("\0")) {
+    throw new Error("Objeto fuera del prefijo de archivo histórico autorizado.");
+  }
+  const relative = normalized.slice(prefix.length);
+  if (relative !== "manifest.json" && !/^pages\/[a-f0-9]{64}\.html$/.test(relative)) {
+    throw new Error("Nombre de objeto histórico privado no válido.");
+  }
+  return normalized;
 }
 
 function assertManifest(value: unknown): ArchiveManifest {
@@ -40,7 +53,7 @@ function assertManifest(value: unknown): ArchiveManifest {
   if (manifest.publicDocuments.length !== Object.keys(LEGACY_PUBLICATION_PDF_PATHS).length || manifest.privateHtml.length !== 108) {
     throw new Error("El manifiesto local no contiene los 9 PDFs y las 108 páginas históricas esperadas.");
   }
-  const expectedPublicPaths = new Set(Object.values(LEGACY_PUBLICATION_PDF_PATHS));
+  const expectedPublicPaths = new Set<string>(Object.values(LEGACY_PUBLICATION_PDF_PATHS));
   const seenPublicPaths = new Set<string>();
   for (const entry of manifest.publicDocuments) {
     if (!entry.publicPath || !expectedPublicPaths.has(entry.publicPath) || managedMediaObjectName(entry.publicPath) !== entry.objectName) {
@@ -107,7 +120,7 @@ async function writeMarker(hash: string): Promise<void> {
   }
 }
 
-async function main(): Promise<void> {
+export async function reconcileLegacyPlatformArchive(): Promise<void> {
   const manifestBytes = await fs.readFile(MANIFEST_PATH);
   const manifest = assertManifest(JSON.parse(manifestBytes.toString("utf8")));
   const hash = digest(manifestBytes);
@@ -131,7 +144,8 @@ async function main(): Promise<void> {
   };
   assertPrivateLegacyArchiveObjectName(privateManifest.objectName);
   const entries = [...manifest.publicDocuments, ...manifest.privateHtml, privateManifest];
-  for (const [index, entry] of entries.entries()) {
+  for (let index = 0; index < entries.length; index += 1) {
+    const entry = entries[index]!;
     await verifyRemoteObject(storage, entry);
     console.log(`[legacy-reconcile] App Storage ${index + 1}/${entries.length} verificado.`);
   }
@@ -142,7 +156,13 @@ async function main(): Promise<void> {
   console.log(JSON.stringify({ mode: "verified-and-reconciled", objects: entries.length }, null, 2));
 }
 
-main().catch((error) => {
-  console.error(`[legacy-reconcile] ${error instanceof Error ? error.message : "Error desconocido"}`);
-  process.exitCode = 1;
-});
+// Este archivo también se incorpora al bundle CJS del servidor. A diferencia
+// de import.meta, argv conserva su ruta de entrada tanto bajo tsx como bajo
+// Node y evita ejecutar la reconciliación como efecto secundario al importarse.
+const invokedAsScript = /(?:^|[\\/])reconcile-legacy-platform-archive\.ts$/.test(process.argv[1] || "");
+if (invokedAsScript) {
+  reconcileLegacyPlatformArchive().catch((error) => {
+    console.error(`[legacy-reconcile] ${error instanceof Error ? error.message : "Error desconocido"}`);
+    process.exitCode = 1;
+  });
+}

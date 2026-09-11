@@ -236,6 +236,14 @@ app.get("/", respondDuringStartup);
 app.get("/healthz", respondHealthz);
 
 async function bootstrapApplication(): Promise<void> {
+  // El socket ya está disponible cuando llegamos aquí. Si una restauración de
+  // Database perdió la marca de migración, la reconciliación comprueba los 118
+  // objetos locales/App Storage antes de reponerla, mientras Autoscale recibe
+  // el estado "Starting" y no interpreta la verificación como un proceso caído.
+  if (isProduction) {
+    const { reconcileLegacyPlatformArchive } = await import("../scripts/reconcile-legacy-platform-archive");
+    await reconcileLegacyPlatformArchive();
+  }
   await registerRoutes(httpServer, app);
 
   // Mirror frontend (original site look) wired to our backend. Registered
