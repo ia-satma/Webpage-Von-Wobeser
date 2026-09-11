@@ -60,11 +60,19 @@ export function applyNavigationMarkup(
       ` href="${esc(child.href)}" data-vw-destination="${esc(child.id)}">` +
       `<span>${esc(child.label)}</span><span aria-hidden="true">→</span></a>`
     )).join("");
+    const disclosureLabel = lang === "es"
+      ? `Abrir submenú de ${item.label}`
+      : `Open ${item.label} submenu`;
     return (
       `<li class="nav__menu--item vw-nav-v2__item vw-nav-v2__item--${esc(item.id)}" data-vw-primary="${esc(item.id)}">` +
-        `<button class="nav__menu--link vw-nav-v2__trigger" type="button" aria-expanded="false" aria-controls="${panelId}">` +
-          `<span>${esc(item.label)}</span><span class="vw-nav-v2__chevron" aria-hidden="true"></span>` +
-        `</button>` +
+        `<div class="vw-nav-v2__primary-row">` +
+          `<a class="nav__menu--link vw-nav-v2__primary-link" href="${esc(item.href)}" data-vw-primary-link="${esc(item.id)}">` +
+            `<span>${esc(item.label)}</span>` +
+          `</a>` +
+          `<button class="vw-nav-v2__trigger" type="button" aria-expanded="false" aria-controls="${panelId}" aria-label="${esc(disclosureLabel)}">` +
+            `<span class="vw-nav-v2__chevron" aria-hidden="true"></span>` +
+          `</button>` +
+        `</div>` +
         `<div class="vw-nav-v2__panel" id="${panelId}" hidden>` +
           `<div class="vw-nav-v2__panel-head">` +
             `<span class="vw-nav-v2__panel-title">${esc(item.label)}</span>` +

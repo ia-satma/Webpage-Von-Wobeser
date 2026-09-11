@@ -2261,6 +2261,10 @@ a[href="/german-desk"],
   cursor: pointer;
 }
 
+.vw-nav-v2__primary-link {
+  text-decoration: none;
+}
+
 .vw-nav-v2__panel[hidden] {
   display: none !important;
 }
@@ -2336,7 +2340,13 @@ a[href="/german-desk"],
     border-left: 0;
   }
 
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger {
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-row {
+    align-items: center;
+    display: inline-flex;
+    min-width: 0;
+  }
+
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link {
     align-items: center;
     background: transparent;
     color: #5e5e5e;
@@ -2353,7 +2363,7 @@ a[href="/german-desk"],
     white-space: nowrap;
   }
 
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger::after {
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link::after {
     background: #ac162c;
     bottom: 13px;
     content: "";
@@ -2365,25 +2375,30 @@ a[href="/german-desk"],
     width: 0;
   }
 
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger {
+    display: none;
+  }
+
   .vw-nav-v2__chevron {
     display: none;
   }
 
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:hover,
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:focus-visible,
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger[aria-expanded="true"],
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--current .vw-nav-v2__trigger {
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link:hover,
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link:focus-visible,
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--open .vw-nav-v2__primary-link,
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--current .vw-nav-v2__primary-link {
     background: transparent;
     color: #ac162c !important;
   }
 
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:hover::after,
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:focus-visible::after,
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger[aria-expanded="true"]::after,
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--current .vw-nav-v2__trigger::after {
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link:hover::after,
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link:focus-visible::after,
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--open .vw-nav-v2__primary-link::after,
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--current .vw-nav-v2__primary-link::after {
     width: 100%;
   }
 
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link:focus-visible,
   body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:focus-visible,
   body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility:focus-visible,
   .vw-nav-v2__panel a:focus-visible {
@@ -2615,11 +2630,18 @@ a[href="/german-desk"],
     border-top: 0;
   }
 
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger {
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-row {
+    align-items: center;
+    display: flex;
+    width: 100%;
+  }
+
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link {
     align-items: center;
     background: transparent;
     color: #5e5e5e;
     display: flex;
+    flex: 1 1 auto;
     font-size: 16px;
     font-weight: 400;
     justify-content: space-between;
@@ -2627,20 +2649,30 @@ a[href="/german-desk"],
     min-height: 52px;
     padding: 4px 2px;
     text-align: left;
-    width: 100%;
   }
 
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger::after {
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger {
+    align-items: center;
+    background: transparent;
+    color: #5e5e5e;
+    display: flex;
+    flex: 0 0 52px;
+    justify-content: center;
+    min-height: 52px;
+    padding: 4px 2px;
+  }
+
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link::after {
     display: none;
   }
 
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:hover,
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:focus-visible,
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--current .vw-nav-v2__trigger {
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link:hover,
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link:focus-visible,
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--current .vw-nav-v2__primary-link {
     color: #ac162c !important;
   }
 
-  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--current .vw-nav-v2__trigger {
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--current .vw-nav-v2__primary-link {
     box-shadow: none;
     padding-left: 2px;
   }
@@ -2648,8 +2680,9 @@ a[href="/german-desk"],
   .vw-nav-v2__chevron {
     border-bottom: 1px solid currentColor;
     border-right: 1px solid currentColor;
+    display: block;
     height: 8px;
-    margin-right: 8px;
+    margin: 0;
     transform: rotate(45deg) translateY(-2px);
     transition: transform .18s ease;
     width: 8px;
@@ -2657,6 +2690,12 @@ a[href="/german-desk"],
 
   .vw-nav-v2__trigger[aria-expanded="true"] .vw-nav-v2__chevron {
     transform: rotate(225deg) translate(-1px, -1px);
+  }
+
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:hover,
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:focus-visible,
+  body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger[aria-expanded="true"] {
+    color: #ac162c !important;
   }
 
   .vw-nav-v2__panel:not([hidden]) {
@@ -2716,6 +2755,7 @@ a[href="/german-desk"],
     color: #ac162c;
   }
 
+  .vw-nav-v2__primary-link:focus-visible,
   .vw-nav-v2__trigger:focus-visible,
   .vw-nav-v2__panel a:focus-visible,
   .vw-nav-v2__utility:focus-visible {
@@ -8176,6 +8216,8 @@ body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utilities {
   transform: none !important;
 }
 
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link > span,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger > span,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility {
@@ -8185,10 +8227,13 @@ body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility {
   text-shadow: none !important;
 }
 
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link:hover,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link:focus-visible,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--open .vw-nav-v2__primary-link,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--current .vw-nav-v2__primary-link,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:hover,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:focus-visible,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger[aria-expanded="true"],
-body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--current .vw-nav-v2__trigger,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility:hover,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility:focus-visible {
   color: #ac162c !important;

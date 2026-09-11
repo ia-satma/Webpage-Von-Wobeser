@@ -384,6 +384,15 @@ test("el servidor entrega menú semántico, seguro y sin parpadeo heredado", () 
   assert.equal($("[data-vw-navigation-version=\"2\"]").prop("tagName"), "UL");
   assert.equal($(".vw-nav-v2__item").length, 6);
   assert.equal($(".vw-nav-v2__trigger[aria-expanded=\"false\"]").length, 6);
+  assert.equal($(".vw-nav-v2__primary-link").length, 6);
+  assert.equal($(".vw-nav-v2__primary-link button").length, 0, "los enlaces principales no anidan controles");
+  for (const item of navigation.items) {
+    const link = $(`[data-vw-primary-link="${item.id}"]`);
+    assert.equal(link.attr("href"), item.href, `${item.id} debe conservar su destino canónico`);
+    assert.equal(link.text().trim(), item.label);
+    assert.equal($(`[data-vw-primary="${item.id}"] .vw-nav-v2__trigger`).attr("aria-controls"), `vw-nav-panel-${item.id}`);
+  }
+  assert.equal($("[data-vw-primary=\"attorneys\"] .vw-nav-v2__trigger").attr("aria-label"), "Abrir submenú de Abogados");
   assert.equal($("#vw-nav-panel-firm").attr("hidden"), "hidden");
   assert.equal($("[data-vw-destination=\"practice:arbitration\"]").length, 1);
   for (const alias of NAVIGATION_LANDING_CHILD_IDS) {
@@ -391,7 +400,7 @@ test("el servidor entrega menú semántico, seguro y sin parpadeo heredado", () 
   }
   assert.equal($("#vw-nav-panel-firm .vw-nav-v2__landing").text().trim(), "Quiénes somos→");
   assert.equal($("#vw-nav-panel-attorneys .vw-nav-v2__landing").text().trim(), "Ver todos los abogados→");
-  assert.equal($(".vw-nav-v2__item--perspectives .vw-nav-v2__trigger").text().trim(), "Insights");
+  assert.equal($(".vw-nav-v2__item--perspectives .vw-nav-v2__primary-link").text().trim(), "Insights");
   assert.equal($("#vw-nav-panel-perspectives .vw-nav-v2__landing").text().trim(), "Ver todos los Insights→");
   assert.equal($("#vw-nav-panel-talent .vw-nav-v2__landing").text().trim(), "Trabaja con nosotros→");
   assert.equal($("#vw-nav-panel-talent [data-vw-destination=\"talent-culture\"]").text().trim(), "Tu carrera con nosotros→");
@@ -407,6 +416,11 @@ test("el servidor entrega menú semántico, seguro y sin parpadeo heredado", () 
     "en",
   );
   const $english = cheerio.load(renderedEnglish);
+  const englishNavigation = resolveNavigationTree(cloneConfiguration(), readyAvailability(), "en");
+  for (const item of englishNavigation.items) {
+    assert.equal($english(`[data-vw-primary-link="${item.id}"]`).attr("href"), item.href);
+  }
+  assert.equal($english("[data-vw-primary=\"attorneys\"] .vw-nav-v2__trigger").attr("aria-label"), "Open Attorneys submenu");
   assert.equal($english("#vw-nav-panel-talent .vw-nav-v2__landing").text().trim(), "Work with us→");
   assert.equal($english("#vw-nav-panel-talent [data-vw-destination=\"talent-culture\"]").text().trim(), "Your career with us→");
 });
@@ -434,14 +448,15 @@ test("el preset clásico se identifica en servidor y conserva el diseño como al
   const $ = cheerio.load(rendered);
   assert.equal($("[data-vw-navigation-preset=\"classic-vwys\"]").length, 1);
   assert.equal($("body").hasClass("vwb-navigation-preset--classic"), true);
-  assert.equal($(".vw-nav-v2__item--perspectives .vw-nav-v2__trigger").text().trim(), "Publicaciones");
+  assert.equal($(".vw-nav-v2__item--perspectives .vw-nav-v2__primary-link").text().trim(), "Publicaciones");
+  assert.equal($("[data-vw-primary-link=\"perspectives\"]").attr("href"), "/publicaciones");
   assert.equal($("#vw-nav-panel-perspectives .vw-nav-v2__landing").attr("href"), "/publicaciones");
   assert.equal($("[data-vw-destination=\"perspectives-communications\"]").attr("href"), "/news");
   assert.equal($("[data-vw-destination=\"perspectives-events\"]").length, 0);
   assert.equal($("a[href=\"/old\"]").length, 0);
 });
 
-test("el clic abre escritorio, conserva el acordeón móvil y respeta el cromo blanco histórico", () => {
+test("los enlaces navegan en escritorio, el acordeón móvil conserva su control y el cromo sigue blanco", () => {
   const script = readFileSync(new URL("../../frontend-mirror/templates/beez3/js/min/functions.min.js", import.meta.url), "utf8");
   const styles = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/von.css", import.meta.url), "utf8");
   const stabilityStyles = readFileSync(new URL("../../frontend-mirror/templates/beez3/css/vwb-stability.css", import.meta.url), "utf8");
@@ -450,6 +465,10 @@ test("el clic abre escritorio, conserva el acordeón móvil y respeta el cromo b
     styles.indexOf("La bibliografía propia"),
   );
   assert.match(script, /i\(\) \? \(r\(t\), a\(t, !0\)\) : s\(t\)/);
+  assert.match(script, /mouseenter\.vwNavV2 focusin\.vwNavV2/);
+  assert.match(script, /\.vw-nav-v2__primary-link/);
+  assert.match(script, /\.attr\("aria-current", "location"\)/);
+  assert.match(script, /i\(\) \? c\(n\) : n\.children\('\.vw-nav-v2__primary-row'\)/);
   assert.match(script, /"Escape" !== e\.key/);
   assert.match(script, /o\.off\("\.vwNavV2"\)[\s\S]*?on\("keydown\.vwNavV2"/);
   assert.match(script, /e\.preventDefault\(\), e\.stopPropagation\(\)/);
@@ -457,6 +476,8 @@ test("el clic abre escritorio, conserva el acordeón móvil y respeta el cromo b
   assert.match(navigationStyles, /body\.vwb-navigation-v2 \.header\.header_JS,[\s\S]*?\.header\.header_JS\.fixed\s*\{[\s\S]*?background-color:\s*#fff\s*!important;[\s\S]*?opacity:\s*1;/);
   assert.match(navigationStyles, /body\.vwb-navigation-v2 nav\.nav\.menu_JS\s*\{[\s\S]*?background:\s*#fff\s*!important;[\s\S]*?height:\s*72px;[\s\S]*?right:\s*218px;/);
   assert.match(navigationStyles, /@media \(max-width: 1239px\)[\s\S]*?body\.vwb-navigation-v2 nav\.nav\.menu_JS\s*\{[\s\S]*?background:\s*#fff\s*!important;/);
+  assert.match(navigationStyles, /\.vw-nav-v2__primary-link\s*\{[\s\S]*?text-decoration:\s*none;/);
+  assert.match(navigationStyles, /@media \(max-width: 1239px\)[\s\S]*?\.vw-nav-v2__primary-row\s*\{[\s\S]*?display:\s*flex;[\s\S]*?width:\s*100%;/);
   assert.match(navigationStyles, /\.vw-nav-v2__utility--search,[\s\S]*?\.vw-nav-v2__utility--language\s*\{\s*display:\s*none;/);
   assert.match(navigationStyles, /\.vw-nav-v2__panel:not\(\[hidden\]\)\s*\{[\s\S]*?animation:\s*vw-nav-panel-enter[\s\S]*?border-radius:\s*8px;[\s\S]*?padding:\s*14px 20px 16px;[\s\S]*?width:\s*min\(760px, calc\(100vw - 56px\)\);/);
   assert.match(navigationStyles, /\.vw-nav-v2__item--practices \.vw-nav-v2__panel\s*\{\s*width:\s*min\(960px, calc\(100vw - 56px\)\);/);
@@ -467,8 +488,8 @@ test("el clic abre escritorio, conserva el acordeón móvil y respeta el cromo b
   assert.match(navigationStyles, /@media \(max-width: 1239px\)[\s\S]*?\.vw-nav-v2__panel:not\(\[hidden\]\)\s*\{[\s\S]*?background:\s*#faf9f8;[\s\S]*?border-radius:\s*7px;/);
   assert.doesNotMatch(navigationStyles, /#2d2d2f/i);
   assert.match(stabilityStyles, /body\.vwb-navigation-v2 nav\.nav\.menu_JS \.vw-nav-v2__item,[\s\S]*?opacity:\s*1\s*!important;[\s\S]*?transform:\s*none\s*!important;/);
-  assert.match(stabilityStyles, /\.vw-nav-v2__trigger > span,[\s\S]*?-webkit-text-fill-color:\s*#5e5e5e\s*!important;/);
-  assert.match(stabilityStyles, /\.vw-nav-v2__item--current \.vw-nav-v2__trigger,[\s\S]*?-webkit-text-fill-color:\s*#ac162c\s*!important;/);
+  assert.match(stabilityStyles, /\.vw-nav-v2__primary-link > span,[\s\S]*?-webkit-text-fill-color:\s*#5e5e5e\s*!important;/);
+  assert.match(stabilityStyles, /\.vw-nav-v2__item--current \.vw-nav-v2__primary-link,[\s\S]*?-webkit-text-fill-color:\s*#ac162c\s*!important;/);
 });
 
 test("la respuesta pública mantiene los arreglos anteriores y admite 18 prácticas y 7 industrias", () => {

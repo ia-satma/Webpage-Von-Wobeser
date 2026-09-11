@@ -28,6 +28,8 @@ body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utilities {
   transform: none !important;
 }
 
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link > span,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger > span,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility {
@@ -37,10 +39,13 @@ body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility {
   text-shadow: none !important;
 }
 
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link:hover,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__primary-link:focus-visible,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--open .vw-nav-v2__primary-link,
+body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--current .vw-nav-v2__primary-link,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:hover,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger:focus-visible,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__trigger[aria-expanded="true"],
-body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__item--current .vw-nav-v2__trigger,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility:hover,
 body.vwb-navigation-v2 nav.nav.menu_JS .vw-nav-v2__utility:focus-visible {
   color: #ac162c !important;
