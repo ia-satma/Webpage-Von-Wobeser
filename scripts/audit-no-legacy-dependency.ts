@@ -61,7 +61,8 @@ async function auditDatabase(): Promise<string[]> {
 }
 
 async function auditRenderedSite(): Promise<string[]> {
-  const base = (process.env.LEGACY_DEPENDENCY_AUDIT_URL || "http://127.0.0.1:5050").replace(/\/$/, "");
+  const localPort = process.env.PORT || "5050";
+  const base = (process.env.LEGACY_DEPENDENCY_AUDIT_URL || `http://127.0.0.1:${localPort}`).replace(/\/$/, "");
   const failures: string[] = [];
   const pages = ["/", "/news", "/articles", "/nuestra-firma/diversidad", "/nuevas-oficinas/"];
   for (const page of pages) {
